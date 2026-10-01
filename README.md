@@ -43,7 +43,7 @@ npm run dev     # http://localhost:3000
 
 ## Banco de dados (Supabase)
 
-Rode os scripts de [`supabase/`](supabase/LEIAME.md) na ordem (01 a 05). Depois, para a sua conta virar nutricionista, siga o passo 7 do arquivo `02-painel-da-nutricionista.sql`.
+Rode os scripts de [`supabase/`](supabase/LEIAME.md) na ordem (01 a 05). Depois, para a sua conta virar nutricionista, siga o passo 2 de [docs/COLOCAR-NO-AR.md](docs/COLOCAR-NO-AR.md).
 
 ## Variáveis de ambiente
 

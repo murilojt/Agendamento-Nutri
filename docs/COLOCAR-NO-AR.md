@@ -13,7 +13,8 @@ Faça na ordem. Tempo total: cerca de 1 hora na primeira vez. Você vai precisar
 3. No menu da esquerda, abra **SQL Editor**. Para cada arquivo da pasta `supabase/` deste repositório, **na ordem 01, 02, 03, 04, 05**:
    - clique em **New query**, cole o conteúdo do arquivo e clique em **Run**;
    - deve aparecer "Success". Se um deles der erro, pare e me mande a mensagem.
-   - No arquivo `02`, ignore os comentários do final (o item 7 você faz no passo 2).
+   - A ordem importa: o `03` depende de uma tabela criada no `02`. Rodar fora de ordem dá erro.
+   - Os comentários (`--`) no final dos arquivos podem ser ignorados; a promoção da conta da nutricionista é feita no passo 2.
 4. Copie as 3 chaves, em **Project Settings → API** (ou **API Keys**):
    - **Project URL** (algo como `https://abcd1234.supabase.co`)
    - **anon / publishable key** (pública)
