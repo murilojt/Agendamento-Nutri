@@ -16,7 +16,7 @@ const item = (r: Record<string, unknown>): ItemRefeicao => ({
 });
 const alimento = (r: Record<string, unknown>): Alimento => ({
   id: String(r.id), name: String(r.name), source: String(r.source), kcal: num(r.kcal), protein_g: num(r.protein_g),
-  fat_g: num(r.fat_g), carb_g: num(r.carb_g), fiber_g: num(r.fiber_g),
+  fat_g: num(r.fat_g), carb_g: num(r.carb_g), fiber_g: num(r.fiber_g), category: (r.category as string | null) ?? null, favorite: Boolean(r.favorite),
 });
 const opt = (v: unknown) => (v == null ? null : Number(v));
 
@@ -27,6 +27,7 @@ export function useDieta(patientId: string) {
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
   const [itens, setItens] = useState<ItemRefeicao[]>([]);
   const [alimentos, setAlimentos] = useState<Alimento[]>([]);
+  const [uso, setUso] = useState<Map<string, number>>(new Map());
   const [favoritas, setFavoritas] = useState<Favorita[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erroGeral, setErroGeral] = useState<string | null>(null);
@@ -71,12 +72,26 @@ export function useDieta(patientId: string) {
         // Banco de alimentos inteiro, em páginas de 1000 (limite do Supabase); a busca é feita no navegador
         const todos: Alimento[] = [];
         for (let de2 = 0; de2 < 20000; de2 += 1000) {
-          const { data: a, error: ae } = await supabase.from("foods").select("id, name, source, kcal, protein_g, fat_g, carb_g, fiber_g").order("name").range(de2, de2 + 999);
+          const completa = await supabase.from("foods").select("id, name, source, kcal, protein_g, fat_g, carb_g, fiber_g, category, favorite").order("name").range(de2, de2 + 999);
+          let a = completa.data as Record<string, unknown>[] | null;
+          let ae: unknown = completa.error;
+          // banco ainda sem o patch 08 (categoria e favorito): a busca funciona sem essas colunas
+          if (ae) {
+            const basica = await supabase.from("foods").select("id, name, source, kcal, protein_g, fat_g, carb_g, fiber_g").order("name").range(de2, de2 + 999);
+            a = basica.data as Record<string, unknown>[] | null;
+            ae = basica.error;
+          }
           if (ae) throw ae;
           todos.push(...(a ?? []).map(alimento));
           if ((a?.length ?? 0) < 1000) break;
         }
         if (!cancelado) setAlimentos(todos);
+
+        // Quantas vezes cada alimento já foi usado nas dietas (os mais usados aparecem primeiro na busca)
+        const { data: usados } = await supabase.from("meal_items").select("food_id").order("created_at", { ascending: false }).limit(5000);
+        const mapa = new Map<string, number>();
+        for (const u of usados ?? []) if (u.food_id) mapa.set(u.food_id, (mapa.get(u.food_id) ?? 0) + 1);
+        if (!cancelado) setUso(mapa);
 
         const { data: f } = await supabase.from("favorite_meals").select("id, name, meal_time, items").order("created_at", { ascending: false });
         if (!cancelado) setFavoritas((f ?? []) as Favorita[]);
@@ -201,6 +216,7 @@ export function useDieta(patientId: string) {
       const pos = (itensPorRefeicao.get(mealId)?.length ?? 0);
       novo.position = pos;
       setItens((x) => [...x, novo]);
+      setUso((u) => new Map(u).set(a.id, (u.get(a.id) ?? 0) + 1));
       void supabase.from("meal_items").update({ position: pos }).eq("id", novo.id);
     }
     return novo?.id ?? null;
@@ -266,7 +282,7 @@ export function useDieta(patientId: string) {
   };
 
   return {
-    paciente, dieta, refeicoes, itens, itensPorRefeicao, alimentos, favoritas, totalDia, massaTotal, carregando, erroGeral, aviso, limparAviso: () => setAviso(null),
+    paciente, dieta, refeicoes, itens, itensPorRefeicao, alimentos, uso, favoritas, totalDia, massaTotal, carregando, erroGeral, aviso, limparAviso: () => setAviso(null),
     criarDieta, salvarDieta, salvarPaciente, novaRefeicao, atualizarRefeicao, removerRefeicao, reordenar, ordenarPorHorario, duplicarRefeicao,
     adicionarAlimento, mudarQuantidade, removerAlimento, favoritar, usarFavorita, apagarFavorita, lerAnamnese, salvarAnamnese,
   };

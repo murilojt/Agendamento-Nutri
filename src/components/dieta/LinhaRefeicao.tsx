@@ -11,6 +11,7 @@ type Props = {
   refeicao: Refeicao;
   itens: ItemRefeicao[];
   alimentos: Alimento[];
+  uso: Map<string, number>;
   expandida: boolean;
   alternar: () => void;
   arrastando: boolean;
@@ -146,7 +147,7 @@ export function LinhaRefeicao(p: Props) {
               ))}
             </ul>
           )}
-          <BuscaAlimento alimentos={p.alimentos} aoEscolher={p.adicionarAlimento} />
+          <BuscaAlimento alimentos={p.alimentos} uso={p.uso} aoEscolher={p.adicionarAlimento} />
         </div>
       )}
     </li>

@@ -6,7 +6,7 @@
 
 export type Macros = { kcal: number; protein_g: number; fat_g: number; carb_g: number; fiber_g: number };
 
-export type Alimento = Macros & { id: string; name: string; source: string }; // valores por 100 g
+export type Alimento = Macros & { id: string; name: string; source: string; category?: string | null; favorite?: boolean }; // valores por 100 g
 
 export type ItemRefeicao = Macros & {
   id: string;
@@ -153,28 +153,40 @@ export function listaDeCompras(itens: { name: string; quantity_g: number }[]): L
   return [...mapa.values()].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 }
 
+/**
+ * Quanto menor a chave, mais "simples" e provável de ser o alimento procurado. Ordem de importância:
+ * 1) o termo é o próprio nome do alimento (primeiro trecho antes da vírgula): "Arroz, ..." antes de "Arroz com cenoura";
+ * 2) começa com o termo; 3) já preparado para comer (cozido, grelhado...) antes de cru e de farinhas/misturas;
+ * 4) menos detalhes de preparo (c/ óleo, s/ sal...); 5) menos trechos; 6) nome mais curto.
+ */
+function chaveDeSimplicidade(nome: string, termo: string): string {
+  const n = normaliza(nome);
+  const t = normaliza(termo).trim();
+  const primeiro = n.split(",")[0].trim();
+  const nivelNome = primeiro === t ? 0 : n.startsWith(t) ? 1 : 2;
+  const preparo = /\b(cozid|grelhad)/.test(n) ? 0 : /\b(cru|crua|crus|cruas)\b/.test(n) ? 1 : 2;
+  const detalhes = (n.match(/\b[cs]\//g) ?? []).length;
+  const trechos = (n.match(/,/g) ?? []).length;
+  return [nivelNome, preparo, Math.min(detalhes, 9), Math.min(trechos, 9), String(n.length).padStart(4, "0")].join("");
+}
+
 /** Busca sem acento e sem diferenciar maiúsculas; todas as palavras digitadas precisam aparecer. */
 export const normaliza = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
-export function buscarAlimentos<T extends { name: string }>(todos: T[], termo: string, limite = 12): T[] {
+export function buscarAlimentos<T extends { name: string }>(todos: T[], termo: string, limite = 12, prioridade?: (a: T) => number): T[] {
   const palavras = normaliza(termo).split(/\s+/).filter(Boolean);
   if (palavras.length === 0) return [];
   const achados = todos.filter((a) => {
     const n = normaliza(a.name);
     return palavras.every((p) => n.includes(p));
   });
-  // Quem começa com o termo vem primeiro, depois os nomes mais curtos
-  const ini = normaliza(termo).trim();
-  achados.sort((a, b) => {
-    const sa = normaliza(a.name).startsWith(ini) ? 0 : 1;
-    const sb = normaliza(b.name).startsWith(ini) ? 0 : 1;
-    return sa - sb || a.name.length - b.name.length;
-  });
+  // Prioridade externa (favoritos e mais usados) vem antes da regra de texto
+  achados.sort((a, b) => (prioridade ? prioridade(b) - prioridade(a) : 0) || chaveDeSimplicidade(a.name, termo).localeCompare(chaveDeSimplicidade(b.name, termo)));
   return achados.slice(0, limite);
 }
 
 /** Lê o CSV de alimentos (TACO ou similar): separador `;` ou `,`, decimal com vírgula ou ponto. */
-export type AlimentoCsv = { name: string } & Macros;
+export type AlimentoCsv = { name: string; category?: string } & Macros;
 
 export function lerCsvAlimentos(texto: string): { alimentos: AlimentoCsv[]; erros: string[] } {
   const linhas = texto.replace(/^﻿/, "").split(/\r?\n/).filter((l) => l.trim());
@@ -216,6 +228,7 @@ export function lerCsvAlimentos(texto: string): { alimentos: AlimentoCsv[]; erro
     carb_g: acha("carboidrato", "carbo"),
     fiber_g: acha("fibra"),
   };
+  const colCategoria = cab.findIndex((c) => c.startsWith("categoria") || c === "classe" || c === "grupo");
   const faltando = Object.entries(col).filter(([k, v]) => v < 0 && k !== "fiber_g").map(([k]) => k);
   if (faltando.length) {
     return { alimentos: [], erros: [`Não encontrei as colunas: ${faltando.join(", ")}. Use: Alimento; Energia (kcal); Proteína (g); Lipídeos (g); Carboidrato (g); Fibra (g).`] };
@@ -241,6 +254,7 @@ export function lerCsvAlimentos(texto: string): { alimentos: AlimentoCsv[]; erro
       fat_g: num(c[col.fat_g]),
       carb_g: num(c[col.carb_g]),
       fiber_g: col.fiber_g >= 0 ? num(c[col.fiber_g]) : 0,
+      ...(colCategoria >= 0 && c[colCategoria]?.trim() ? { category: c[colCategoria].trim() } : {}),
     };
     if (CAMPOS.some((k) => Number.isNaN(a[k]) || a[k] < 0)) erros.push(`Linha ${idx + 2} (${name}): valor numérico inválido.`);
     else alimentos.push(a);
@@ -251,3 +265,160 @@ export function lerCsvAlimentos(texto: string): { alimentos: AlimentoCsv[]; erro
   }
   return { alimentos, erros };
 }
+
+/* ------------------------------------------------------------------ */
+/* Importação de alimentos (CSV da TACO, JSON da TBCA)                */
+/* ------------------------------------------------------------------ */
+
+export type AlimentoImportado = { name: string; category?: string; code?: string } & Macros;
+
+export type LeituraAlimentos = {
+  alimentos: AlimentoImportado[];
+  erros: string[];
+  avisos: string[];
+  /** 'tbca' para JSON (uma linha por alimento ou lista); 'taco' para CSV */
+  origem: "tbca" | "taco";
+};
+
+/** Nome do alimento sem a vírgula final e sem espaços repetidos (a TBCA termina os nomes com ","). */
+export const limparNome = (s: string) => s.replace(/\s+/g, " ").trim().replace(/[,\s]+$/, "");
+
+/** "Tr" (traço), "NA", "*" e vazio viram 0, como na TACO. Texto que não é número devolve NaN. */
+function numeroTabela(v: unknown): number {
+  if (v == null) return 0;
+  const t = String(v).trim().replace(/\s/g, "");
+  if (t === "" || /^(na|tr|\*|-|nd)$/i.test(t)) return 0;
+  const n = Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+type NutrienteJson = { Componente?: string; Unidades?: string; ["Valor por 100g"]?: string };
+
+/**
+ * Lê o JSON da TBCA: um objeto por linha ou uma lista inteira.
+ * Cada alimento tem { codigo, classe, descricao, nutrientes: [{ Componente, Unidades, "Valor por 100g" }] }.
+ * Carboidrato = "Carboidrato total" (mesma convenção da TACO, que inclui a fibra); energia em kcal.
+ */
+export function lerAlimentosJson(texto: string): LeituraAlimentos {
+  const erros: string[] = [];
+  const avisos: string[] = [];
+  const bruto = texto.replace(/^﻿/, "").trim();
+  let registros: unknown[] = [];
+
+  if (bruto.startsWith("[")) {
+    try {
+      registros = JSON.parse(bruto);
+    } catch {
+      return { alimentos: [], erros: ["O arquivo JSON está incompleto ou com defeito."], avisos, origem: "tbca" };
+    }
+  } else {
+    bruto.split(/\r?\n/).forEach((linha, i) => {
+      if (!linha.trim()) return;
+      try {
+        registros.push(JSON.parse(linha));
+      } catch {
+        if (erros.length < 5) erros.push(`Linha ${i + 1}: JSON inválido.`);
+      }
+    });
+  }
+
+  const brutos: { code: string; category: string; name: string; m: Macros }[] = [];
+  let ignoradosImpossiveis: string[] = [];
+  let semEnergia = 0;
+
+  for (const r of registros as Record<string, unknown>[]) {
+    const desc = typeof r?.descricao === "string" ? limparNome(r.descricao) : "";
+    const lista = Array.isArray(r?.nutrientes) ? (r.nutrientes as NutrienteJson[]) : null;
+    if (!desc || !lista) continue;
+
+    // primeira ocorrência de cada componente (há registros com componentes repetidos)
+    const pega = (nome: string, unidade?: string) =>
+      lista.find((n) => normaliza(n.Componente ?? "") === nome && (!unidade || normaliza(n.Unidades ?? "") === unidade))?.["Valor por 100g"];
+
+    let kcal = numeroTabela(pega("energia", "kcal"));
+    if (pega("energia", "kcal") == null || Number.isNaN(kcal)) {
+      const kj = pega("energia", "kj");
+      kcal = kj != null ? numeroTabela(kj) / 4.184 : NaN;
+    }
+    if (!Number.isFinite(kcal)) {
+      semEnergia++;
+      continue;
+    }
+    const m: Macros = {
+      kcal: arredonda(kcal, 1),
+      protein_g: numeroTabela(pega("proteina")),
+      fat_g: numeroTabela(pega("lipidios")),
+      carb_g: numeroTabela(pega("carboidrato total")),
+      fiber_g: numeroTabela(pega("fibra alimentar")),
+    };
+    if (CAMPOS.some((c) => Number.isNaN(m[c]) || m[c] < 0)) {
+      semEnergia++;
+      continue;
+    }
+    // Fisicamente impossível: mais de 100 g de macronutrientes em 100 g de alimento, ou energia acima do óleo puro
+    if (m.protein_g + m.fat_g + m.carb_g > 100.5 || m.kcal > 950) {
+      ignoradosImpossiveis.push(desc);
+      continue;
+    }
+    brutos.push({ code: String(r.codigo ?? ""), category: typeof r.classe === "string" ? r.classe.trim() : "", name: desc, m });
+  }
+
+  // Categorias escritas de dois jeitos ("Frutos do mar" / "frutos do mar") viram uma só (vale a forma mais comum)
+  const formas = new Map<string, Map<string, number>>();
+  for (const b of brutos) {
+    const chave = normaliza(b.category);
+    const f = formas.get(chave) ?? new Map();
+    f.set(b.category, (f.get(b.category) ?? 0) + 1);
+    formas.set(chave, f);
+  }
+  const canonica = (cat: string) => {
+    const f = formas.get(normaliza(cat));
+    return f ? [...f.entries()].sort((a, b) => b[1] - a[1])[0][0] : cat;
+  };
+
+  // Nome repetido no arquivo: acrescenta o código para o banco aceitar os dois
+  const vistos = new Map<string, number>();
+  for (const b of brutos) vistos.set(b.name.toLowerCase(), (vistos.get(b.name.toLowerCase()) ?? 0) + 1);
+  let desambiguados = 0;
+  const alimentos: AlimentoImportado[] = brutos.map((b) => {
+    let name = b.name;
+    if ((vistos.get(b.name.toLowerCase()) ?? 0) > 1 && b.code) {
+      name = `${b.name} [${b.code}]`;
+      desambiguados++;
+    }
+    return { name, code: b.code, ...(b.category ? { category: canonica(b.category) } : {}), ...b.m };
+  });
+
+  if (desambiguados) avisos.push(`${desambiguados} alimento(s) tinham nome repetido; o código foi acrescentado ao nome entre colchetes.`);
+  if (ignoradosImpossiveis.length) {
+    const nomes = [...new Set(ignoradosImpossiveis)].slice(0, 3).map((n) => (n.length > 60 ? `${n.slice(0, 60)}...` : n));
+    avisos.push(`${ignoradosImpossiveis.length} alimento(s) ignorados por valores impossíveis (mais de 100 g de nutrientes em 100 g): ${nomes.join("; ")}`);
+  }
+  if (semEnergia) avisos.push(`${semEnergia} registro(s) ignorado(s) por falta de energia ou valor inválido.`);
+  if (alimentos.length === 0 && erros.length === 0) erros.push("Não encontrei alimentos no formato esperado (descricao e nutrientes).");
+  return { alimentos, erros, avisos, origem: "tbca" };
+}
+
+/** Detecta o formato (JSON da TBCA ou CSV) e lê os alimentos. */
+export function lerArquivoAlimentos(texto: string): LeituraAlimentos {
+  const inicio = texto.replace(/^﻿/, "").trimStart()[0];
+  if (inicio === "{" || inicio === "[") return lerAlimentosJson(texto);
+  const csv = lerCsvAlimentos(texto);
+  return { alimentos: csv.alimentos, erros: csv.erros, avisos: [], origem: "taco" };
+}
+
+/** Quantos alimentos há em cada categoria, da maior para a menor. */
+export function resumoPorCategoria(alimentos: { category?: string }[]): { categoria: string; quantidade: number }[] {
+  const m = new Map<string, number>();
+  for (const a of alimentos) {
+    const c = a.category?.trim() || "Sem categoria";
+    m.set(c, (m.get(c) ?? 0) + 1);
+  }
+  return [...m.entries()].map(([categoria, quantidade]) => ({ categoria, quantidade })).sort((a, b) => b.quantidade - a.quantidade || a.categoria.localeCompare(b.categoria, "pt-BR"));
+}
+
+/** Categorias de alimentos "do dia a dia" (sem especiais, industrializados e fast food). */
+export const CATEGORIAS_BASICAS = ["Cereais e derivados", "Carnes e derivados", "Frutas e derivados", "Leguminosas e derivados", "Leite e derivados", "Ovos e derivados", "Pescados e Frutos do mar", "Vegetais e derivados", "Gorduras e óleos", "Sementes e Oleaginosas"];
+
+/** Favoritos vêm primeiro (1000+), depois os mais usados nas dietas. */
+export const prioridadeDoAlimento = (a: { id: string; favorite?: boolean }, uso: Map<string, number>) => (a.favorite ? 1000 : 0) + Math.min(uso.get(a.id) ?? 0, 999);

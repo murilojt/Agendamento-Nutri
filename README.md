@@ -15,7 +15,7 @@ Next.js 16 + TypeScript + Zod + Supabase, com a identidade visual do brandbook A
 | `/admin` | nutricionista | lista de pacientes |
 | `/admin/pacientes/novo` | nutricionista | cadastra paciente (cria o login dele) |
 | `/admin/pacientes/[id]` | nutricionista | **montador de dietas**: refeições com alimentos e macros, protocolo e metas, análise de nutrientes, favoritas, lista de compras, anamnese, consultas e mensagens |
-| `/admin/alimentos` | nutricionista | banco de alimentos: cadastro, edição e importação de CSV (TACO) |
+| `/admin/alimentos` | nutricionista | banco de alimentos: cadastro, edição, favoritos (★), filtro por categoria e importação da TBCA (JSON) e da TACO (CSV) |
 | `/admin/consultas` | nutricionista | consultas marcadas pelo site, com o paciente vinculado |
 
 ## Como o agendamento se liga ao paciente
@@ -44,7 +44,7 @@ npm run dev     # http://localhost:3000
 
 ## Banco de dados (Supabase)
 
-Rode os scripts de [`supabase/`](supabase/LEIAME.md) na ordem (01 a 06; o 07 é opcional, só para testes). Depois, para a sua conta virar nutricionista, siga o passo 2 de [docs/COLOCAR-NO-AR.md](docs/COLOCAR-NO-AR.md).
+Rode os scripts de [`supabase/`](supabase/LEIAME.md) na ordem (01 a 06 e 08; o 07 é opcional, só para testes). Depois, para a sua conta virar nutricionista, siga o passo 2 de [docs/COLOCAR-NO-AR.md](docs/COLOCAR-NO-AR.md).
 
 ## Variáveis de ambiente
 

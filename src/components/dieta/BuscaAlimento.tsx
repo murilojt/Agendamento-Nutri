@@ -2,13 +2,13 @@
 
 import { useId, useMemo, useState } from "react";
 import Link from "next/link";
-import { buscarAlimentos, type Alimento } from "@/lib/nutricao";
+import { buscarAlimentos, prioridadeDoAlimento, type Alimento } from "@/lib/nutricao";
 
 /** Campo de busca de alimentos com lista de resultados (busca sem acento, todas as palavras). */
-export function BuscaAlimento({ alimentos, aoEscolher }: { alimentos: Alimento[]; aoEscolher: (a: Alimento) => void }) {
+export function BuscaAlimento({ alimentos, uso, aoEscolher }: { alimentos: Alimento[]; uso: Map<string, number>; aoEscolher: (a: Alimento) => void }) {
   const [termo, setTermo] = useState("");
   const idLista = useId();
-  const resultados = useMemo(() => buscarAlimentos(alimentos, termo), [alimentos, termo]);
+  const resultados = useMemo(() => buscarAlimentos(alimentos, termo, 15, (a) => prioridadeDoAlimento(a, uso)), [alimentos, termo, uso]);
 
   return (
     <div className="relative">
@@ -50,7 +50,8 @@ export function BuscaAlimento({ alimentos, aoEscolher }: { alimentos: Alimento[]
                 }}
                 className="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm hover:bg-[var(--fundo-alt)]"
               >
-                <span>
+                <span className="min-w-0 break-words">
+                  {a.favorite && <span className="mr-1" style={{ color: "var(--gema)" }} aria-label="Favorito" title="Favorito">★</span>}
                   {a.name}
                   {a.source === "referencia" && (
                     <span className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ background: "var(--gema)", color: "var(--sobre-gema)" }}>
@@ -58,8 +59,9 @@ export function BuscaAlimento({ alimentos, aoEscolher }: { alimentos: Alimento[]
                     </span>
                   )}
                 </span>
-                <span className="shrink-0 text-xs" style={{ color: "var(--color-text-muted)" }}>
+                <span className="shrink-0 text-right text-xs" style={{ color: "var(--color-text-muted)" }}>
                   {a.kcal} kcal/100 g
+                  {a.category && <span className="block">{a.category}</span>}
                 </span>
               </button>
             </li>

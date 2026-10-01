@@ -120,6 +120,7 @@ export default function PacientePage() {
                   refeicao={r}
                   itens={d.itensPorRefeicao.get(r.id) ?? []}
                   alimentos={d.alimentos}
+                  uso={d.uso}
                   expandida={expandidas.has(r.id)}
                   alternar={() => alternar(r.id)}
                   arrastando={arrastando === r.id}

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  analisar, buscarAlimentos, distribuicao, kcalNaoProteicaPorGN, lerCsvAlimentos, listaDeCompras, macrosDaPorcao, metaTeorica, reescalar, somar,
+  prioridadeDoAlimento, lerAlimentosJson, lerArquivoAlimentos, resumoPorCategoria, limparNome, analisar, buscarAlimentos, distribuicao, kcalNaoProteicaPorGN, lerCsvAlimentos, listaDeCompras, macrosDaPorcao, metaTeorica, reescalar, somar,
 } from "../src/lib/nutricao.ts";
 
 const arroz = { kcal: 128, protein_g: 2.5, fat_g: 0.2, carb_g: 28.1, fiber_g: 1.6 };
@@ -105,7 +105,7 @@ test("CSV da TACO completa: usa a descrição (e não o número) como nome e a e
   const r = lerCsvAlimentos(csv);
   assert.equal(r.erros.length, 0);
   assert.deepEqual(r.alimentos.map((a) => a.name), ["Arroz, integral, cozido", "Arroz, tipo 1, cozido", "Bolo, pronto, chocolate"]);
-  assert.deepEqual(r.alimentos[0], { name: "Arroz, integral, cozido", kcal: 124, protein_g: 2.6, fat_g: 1, carb_g: 25.8, fiber_g: 2.7 });
+  assert.deepEqual(r.alimentos[0], { name: "Arroz, integral, cozido", category: "Cereais e derivados", kcal: 124, protein_g: 2.6, fat_g: 1, carb_g: 25.8, fiber_g: 2.7 });
   assert.equal(r.alimentos[2].fiber_g, 0);
 });
 
@@ -118,4 +118,78 @@ test("planilha cujos nomes são só números é recusada com aviso claro", () =>
   const r = lerCsvAlimentos("Nome;kcal;Proteína;Lipídios;Carboidratos\n1;100;1;1;1\n2;120;2;2;2\n");
   assert.equal(r.alimentos.length, 0);
   assert.match(r.erros[0], /parecem números/);
+});
+
+/* ---------------- TBCA (JSON) ---------------- */
+
+const reg = (codigo: string, classe: string, descricao: string, kcal: string, p: string, l: string, ct: string, f: string) =>
+  JSON.stringify({ codigo, classe, descricao, nutrientes: [
+    { Componente: "Energia", Unidades: "kJ", "Valor por 100g": String(Math.round(parseFloat(kcal.replace(",", ".")) * 4.184)) },
+    { Componente: "Energia", Unidades: "kcal", "Valor por 100g": kcal },
+    { Componente: "Umidade", Unidades: "g", "Valor por 100g": "60,0" },
+    { Componente: "Carboidrato total", Unidades: "g", "Valor por 100g": ct },
+    { Componente: "Carboidrato disponível", Unidades: "g", "Valor por 100g": "1,0" },
+    { Componente: "Proteína", Unidades: "g", "Valor por 100g": p },
+    { Componente: "Lipídios", Unidades: "g", "Valor por 100g": l },
+    { Componente: "Fibra alimentar", Unidades: "g", "Valor por 100g": f },
+  ] });
+
+test("TBCA: lê JSON por linha, usa kcal e carboidrato total, limpa a vírgula final", () => {
+  const txt = reg("C0016A", "Cereais e derivados", "Arroz, integral, cozido, s/ sal, s/ óleo, Orysa sativa L.,", "108", "2,44", "0,87", "23,5", "2,12") + "\n" +
+    reg("C0906B", "Vegetais e derivados", "Tapioca, sem manteiga, sem recheio,", "289", "0,36", "tr", "71,9", "NA") + "\n";
+  const r = lerAlimentosJson(txt);
+  assert.equal(r.origem, "tbca");
+  assert.equal(r.erros.length, 0);
+  assert.deepEqual(r.alimentos[0], { name: "Arroz, integral, cozido, s/ sal, s/ óleo, Orysa sativa L.", code: "C0016A", category: "Cereais e derivados", kcal: 108, protein_g: 2.44, fat_g: 0.87, carb_g: 23.5, fiber_g: 2.12 });
+  assert.equal(r.alimentos[1].fat_g, 0); // "tr"
+  assert.equal(r.alimentos[1].fiber_g, 0); // "NA"
+});
+
+test("TBCA: nome repetido ganha o código; macros impossíveis são ignorados com aviso", () => {
+  const txt = [
+    reg("C1", "Cereais e derivados", "Bolo, simples,", "300", "5", "10", "50", "1"),
+    reg("C2", "Cereais e derivados", "Bolo, simples,", "310", "5", "11", "50", "1"),
+    reg("C3", "Cereais e derivados", "Biscoito impossível", "400", "40", "40", "40", "1"),
+  ].join("\n");
+  const r = lerAlimentosJson(txt);
+  assert.deepEqual(r.alimentos.map((a) => a.name), ["Bolo, simples [C1]", "Bolo, simples [C2]"]);
+  assert.ok(r.avisos.some((a) => /impossíveis/.test(a)) && r.avisos.some((a) => /repetido/.test(a)));
+});
+
+test("TBCA: categorias escritas de dois jeitos viram uma só e há resumo por categoria", () => {
+  const txt = [reg("C1", "Pescados e Frutos do mar", "Atum", "100", "20", "1", "0", "0"), reg("C2", "Pescados e Frutos do mar", "Sardinha", "150", "20", "8", "0", "0"), reg("C3", "Pescados e frutos do mar", "Camarão", "90", "18", "1", "0", "0"), reg("C4", "Bebidas", "Suco", "40", "0", "0", "10", "0")].join("\n");
+  const r = lerAlimentosJson(txt);
+  assert.deepEqual(resumoPorCategoria(r.alimentos), [{ categoria: "Pescados e Frutos do mar", quantidade: 3 }, { categoria: "Bebidas", quantidade: 1 }]);
+});
+
+test("TBCA: aceita lista JSON, BOM e linha com defeito sem derrubar o resto", () => {
+  const lista = "\uFEFF[" + [reg("C1", "Bebidas", "Suco", "40", "0", "0", "10", "0"), reg("C2", "Bebidas", "Chá", "1", "0", "0", "0,3", "0")].join(",") + "]";
+  assert.equal(lerArquivoAlimentos(lista).alimentos.length, 2);
+  const mista = reg("C1", "Bebidas", "Suco", "40", "0", "0", "10", "0") + "\n{linha quebrada\n" + reg("C2", "Bebidas", "Chá", "1", "0", "0", "0,3", "0");
+  const r = lerArquivoAlimentos(mista);
+  assert.equal(r.alimentos.length, 2);
+  assert.match(r.erros[0], /Linha 2/);
+});
+
+test("lerArquivoAlimentos: CSV continua indo para o leitor de CSV", () => {
+  const r = lerArquivoAlimentos("Alimento;Energia (kcal);Proteína (g);Lipídeos (g);Carboidrato (g)\nPão;250;8;3;50\n");
+  assert.equal(r.origem, "taco");
+  assert.equal(r.alimentos[0].name, "Pão");
+});
+
+test("limparNome tira vírgula final e espaços repetidos", () => {
+  assert.equal(limparNome("  Arroz,   integral ,, "), "Arroz, integral");
+});
+
+test("busca: favoritos e mais usados vêm antes da regra de texto", () => {
+  const base = [
+    { id: "a", name: "Arroz, farelo, cru" }, { id: "b", name: "Arroz, integral, cozido, s/ sal" }, { id: "c", name: "Arroz, polido, cozido", favorite: true }, { id: "d", name: "Arroz, tipo 2, cozido" },
+  ];
+  const uso = new Map([["d", 7]]);
+  const nomes = buscarAlimentos(base, "arroz", 10, (a) => prioridadeDoAlimento(a, uso)).map((a) => a.id);
+  assert.deepEqual(nomes.slice(0, 2), ["c", "d"]); // favorito, depois o mais usado
+  const semPrioridade = buscarAlimentos(base, "arroz", 10).map((a) => a.id);
+  assert.deepEqual([...semPrioridade.slice(0, 2)].sort(), ["c", "d"]); // regra: cozido simples primeiro
+  assert.equal(semPrioridade[2], "b"); // cozido com detalhe de preparo (s/ sal)
+  assert.equal(semPrioridade[3], "a"); // cru por último
 });

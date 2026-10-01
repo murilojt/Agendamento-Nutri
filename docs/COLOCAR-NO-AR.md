@@ -88,13 +88,25 @@ Sem isso, o e-mail de "esqueci minha senha" não volta para o seu site.
 
 O montador de dietas calcula tudo a partir do banco de alimentos (valores por 100 g). Os 30 alimentos do script `07` são **aproximados e só servem para testar**.
 
-1. Baixe a **TACO** (Tabela Brasileira de Composição de Alimentos, NEPA/Unicamp) e salve como **CSV** (no Excel: Salvar como → CSV).
-2. Pode usar a planilha **completa** da TACO. O sistema usa as colunas *Descrição dos alimentos*, *Energia (kcal)*, *Proteína*, *Lipídeos*, *Carboidrato* e *Fibra alimentar* e ignora as demais (número, categoria, vitaminas, minerais...). Também serve uma planilha simples com essas colunas.
-3. No painel, abra **Alimentos → Importar a TACO (CSV)** e escolha o arquivo. O sistema avisa quantos entraram, quantos já existiam e quais linhas tinham problema ("Tr" e "NA" viram zero).
-   - Se a importação saiu errada, use **Apagar os N importados (refazer importação)** e importe de novo.
-   - Alimentos de referência (script `07`) com o mesmo nome de um da TACO fazem a TACO ser ignorada naquele item. Por isso, **apague a referência antes de importar**.
-4. Apague os 30 aproximados com **Apagar referência** (antes de importar, como acima).
-5. Alimentos que não estão na TACO (marcas, receitas) você cadastra à mão em **+ Novo alimento**.
+**Rode também o `08-categoria-dos-alimentos.sql`** (categoria e favoritos).
+
+Você pode importar tabelas oficiais em **Alimentos → Importar tabela de alimentos**:
+
+| Tabela | Arquivo | Observação |
+|---|---|---|
+| **TBCA** (USP) | `.txt` ou `.json`, um alimento por linha (`codigo`, `classe`, `descricao`, `nutrientes`) | Usa **energia em kcal** e **carboidrato total** (como a TACO); a fibra fica separada. |
+| **TACO** (Unicamp) | `.csv` da planilha completa ou simples | Usa *Descrição dos alimentos*, *Energia (kcal)*, *Proteína*, *Lipídeos*, *Carboidrato*, *Fibra* e *Categoria*. |
+
+Como importar:
+1. Escolha o arquivo. O sistema mostra uma **prévia**: quantos alimentos, quantas categorias, avisos (nomes repetidos, valores impossíveis) e as categorias com a contagem de cada uma.
+2. Marque **só as categorias que você usa**. O botão **Só alimentos do dia a dia** deixa de fora "Alimentos para fins especiais", "industrializados", "fast food" e similares. A TBCA tem mais de 5.600 itens, e a maioria são preparações específicas.
+3. Clique em **Importar**. "Tr", "NA" e vazio viram zero. Nomes que já existem são ignorados.
+4. Se a importação saiu errada, use **Apagar os N importados da TBCA/TACO (refazer importação)** e importe de novo.
+5. Alimentos de referência (script `07`) com o mesmo nome de um importado fazem o importado ser ignorado. **Apague a referência antes de importar.**
+
+**Deixe a busca do jeito que você usa (leva 10 minutos):** a TBCA tem dezenas de variações de "arroz" e "feijão". Em **Alimentos**, busque o que você usa no dia a dia e marque com **★**. Na hora de montar a dieta, os **favoritos** aparecem primeiro na busca, depois os **mais usados** nas suas dietas, e só então os demais. Você também pode **Editar** qualquer alimento para dar um nome mais curto (por exemplo, "Arroz integral cozido").
+
+Alimentos que não estão em nenhuma tabela (marcas, receitas) você cadastra à mão em **+ Novo alimento**. Confira os termos de uso da TACO e da TBCA antes de importar.
 
 ## Passo 8. Segurança (não pule)
 
