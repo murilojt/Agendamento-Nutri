@@ -14,7 +14,7 @@ Next.js 16 + TypeScript + Zod + Supabase, com a identidade visual do brandbook A
 | `/paciente` | paciente | dieta, mensagens da nutricionista e próximas consultas |
 | `/admin` | nutricionista | lista de pacientes |
 | `/admin/pacientes/novo` | nutricionista | cadastra paciente (cria o login dele) |
-| `/admin/pacientes/[id]` | nutricionista | **montador de dietas**: refeições com alimentos e macros, protocolo e metas, análise de nutrientes, favoritas, lista de compras, anamnese, consultas e mensagens |
+| `/admin/pacientes/[id]` | nutricionista | **montador de dietas**: refeições com alimentos e macros, protocolo e metas, análise de nutrientes, favoritas, lista de compras, anamnese, **exportação em PDF**, consultas e mensagens |
 | `/admin/alimentos` | nutricionista | banco de alimentos: cadastro, edição, favoritos (★), filtro por categoria e importação da TBCA (JSON) e da TACO (CSV) |
 | `/admin/consultas` | nutricionista | consultas marcadas pelo site, com o paciente vinculado |
 
@@ -70,7 +70,9 @@ src/app/api/       agendamentos, disponibilidade, patients, send-message
 src/styles/marca.css   tokens de cor, fontes e tema claro/escuro (compartilhado)
 src/core/          regras da agenda e tipos (Zod); não depende do Next
 src/lib/nutricao.ts   cálculos da dieta (macros, metas, lista de compras, CSV); testes em tests/ (npm test)
-src/components/dieta/ telas do montador de dietas
+src/components/dieta/ telas do montador de dietas e o PDF (DietaPdf.tsx, gerado no navegador)
+src/lib/pdfDieta.ts   dados do PDF (testados em tests/pdf.test.ts)
+public/fonts/         Playfair Display e Hanken Grotesk (OFL) usadas no PDF
 src/lib/           Google Agenda, Supabase (cliente) e servidor/ (chave de serviço, só no servidor)
 supabase/          scripts SQL
 public/marca/      logotipo e isotipo em SVG

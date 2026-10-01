@@ -1,0 +1,84 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { idadeEm, lerSvgVetorial, montarDadosPdf, nomeDoArquivoPdf, OPCOES_PADRAO, type EntradaPdf } from "../src/lib/pdfDieta.ts";
+
+const item = (id: string, meal_id: string, name: string, g: number, kcal: number, p: number, l: number, c: number, position = 0) => ({
+  id, meal_id, food_id: null, name, quantity_g: g, kcal, protein_g: p, fat_g: l, carb_g: c, fiber_g: 1, position,
+});
+
+const entrada = (over: Partial<EntradaPdf> = {}): EntradaPdf => ({
+  clinica: "Ayllus Nutrição",
+  nutricionista: "Dra. Helena",
+  paciente: { full_name: "Maria Silva", birth_date: "1996-09-23", weight_kg: 70, height_cm: 165 },
+  dieta: { title: "Plano alimentar", objective: "  Emagrecimento gradual  ", supplements: "Whey", recipes: null, target_kcal: 1500, target_protein_gkg: 1.6, target_fat_gkg: null, target_carb_gkg: null },
+  refeicoes: [
+    { id: "r2", meal_name: "Almoço", meal_time: "12:30:00", notes: null, position: 1 },
+    { id: "r1", meal_name: "Café da manhã", meal_time: "07:30:00", notes: " pode trocar o pão ", position: 0 },
+  ],
+  itens: [
+    item("i1", "r1", "Pão, integral", 50, 125, 4.7, 1.9, 25, 1), item("i2", "r1", "Ovo, cozido", 100, 146, 13.3, 9.5, 0.6, 0),
+    item("i3", "r2", "Arroz, integral, cozido", 150, 186, 3.9, 1.5, 38.7), item("i9", "r-outra-dieta", "Não deve aparecer", 10, 10, 1, 1, 1),
+  ],
+  opcoes: { ...OPCOES_PADRAO },
+  agora: new Date(2026, 9, 5, 10, 0),
+  logos: { isotipo: null, logotipo: null },
+  ...over,
+});
+
+test("refeições saem na ordem da dieta, com horário HH:MM e itens na ordem; itens de outras dietas ficam de fora", () => {
+  const d = montarDadosPdf(entrada());
+  assert.deepEqual(d.refeicoes.map((r) => [r.nome, r.horario]), [["Café da manhã", "07:30"], ["Almoço", "12:30"]]);
+  assert.deepEqual(d.refeicoes[0].itens.map((i) => i.nome), ["Ovo, cozido", "Pão, integral"]);
+  assert.equal(d.refeicoes[0].notas, "pode trocar o pão");
+  assert.equal(d.total.kcal, 457); // 125 + 146 + 186
+  assert.equal(d.refeicoes[0].total.kcal, 271);
+});
+
+test("cabeçalho: nome, idade na data do PDF, objetivo sem espaços sobrando", () => {
+  const d = montarDadosPdf(entrada());
+  assert.equal(d.paciente.nome, "Maria Silva");
+  assert.equal(d.paciente.idade, 30); // nasceu 23/09/1996; em 05/10/2026 já fez 30
+  assert.equal(d.objetivo, "Emagrecimento gradual");
+  assert.equal(montarDadosPdf(entrada({ paciente: { full_name: null, birth_date: null, weight_kg: null, height_cm: null } })).paciente.nome, "Paciente");
+});
+
+test("idade: antes e depois do aniversário", () => {
+  assert.equal(idadeEm("1996-10-06", new Date(2026, 9, 5)), 29);
+  assert.equal(idadeEm("1996-10-05", new Date(2026, 9, 5)), 30);
+  assert.equal(idadeEm(null, new Date()), null);
+  assert.equal(idadeEm("lixo", new Date()), null);
+});
+
+test("opções: análise, compras, suplementos e receitas só entram quando ligadas", () => {
+  const padrao = montarDadosPdf(entrada());
+  assert.equal(padrao.analise, null);
+  assert.equal(padrao.compras, null);
+  assert.equal(padrao.suplementos, "Whey");
+  assert.equal(padrao.receitas, null); // ligado, mas a dieta não tem receitas
+  const completo = montarDadosPdf(entrada({ opcoes: { ...OPCOES_PADRAO, comparacaoComMetas: true, listaDeCompras: true, suplementos: false } }));
+  assert.ok(completo.analise && completo.analise.some((l) => l.rotulo === "Calorias totais" && l.teorico === 1500));
+  assert.deepEqual(completo.compras?.map((c) => [c.nome, c.gramasSemana]), [["Arroz, integral, cozido", 1050], ["Ovo, cozido", 700], ["Pão, integral", 350]]);
+  assert.equal(completo.suplementos, null);
+});
+
+test("dieta sem refeições gera dados vazios sem quebrar", () => {
+  const d = montarDadosPdf(entrada({ refeicoes: [], itens: [] }));
+  assert.equal(d.refeicoes.length, 0);
+  assert.equal(d.total.kcal, 0);
+  assert.equal(d.distribuicao.totalKcal, 0);
+});
+
+test("nome do arquivo: sem acento, com data e sem caracteres perigosos", () => {
+  assert.equal(nomeDoArquivoPdf("Maria da Conceição Silva", new Date(2026, 9, 5)), "Plano-alimentar-maria-da-conceicao-silva-2026-10-05.pdf");
+  assert.equal(nomeDoArquivoPdf("../../etc/passwd", new Date(2026, 0, 2)), "Plano-alimentar-etc-passwd-2026-01-02.pdf");
+  assert.equal(nomeDoArquivoPdf("???", new Date(2026, 0, 2)), "Plano-alimentar-paciente-2026-01-02.pdf");
+});
+
+test("SVG vetorial: lê viewBox, paths e polígonos", () => {
+  const svg = '<svg viewBox="-20 30 400 200" fill="#A6814A"><path d="M0 0L10 10z"/><polygon points="1,2 3,4 5,6"/><path d="M5 5h2"/></svg>';
+  const l = lerSvgVetorial(svg)!;
+  assert.deepEqual([l.largura, l.altura, l.formas.length], [400, 200, 3]);
+  assert.deepEqual(l.formas[1], { tipo: "polygon", pontos: "1,2 3,4 5,6" });
+  assert.equal(lerSvgVetorial("<svg></svg>"), null);
+  assert.equal(lerSvgVetorial('<svg viewBox="0 0 10 10"></svg>'), null);
+});

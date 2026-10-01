@@ -82,7 +82,8 @@ Sem isso, o e-mail de "esqueci minha senha" não volta para o seu site.
 3. **Novo paciente**: cadastre um paciente de teste (e-mail, senha provisória). Abra a ficha dele, preencha **Editar dados** (peso e altura), clique em **Criar dieta**, defina o **Protocolo nutricional** e monte uma refeição com alimentos.
 4. Saia, entre com o paciente de teste e confira se aparecem a dieta e a mensagem. Se enviou uma mensagem pela ficha, ela aparece em **/paciente**.
 5. Agende com o e-mail do paciente de teste e confira, em **/admin → Consultas**, se a consulta aparece ligada a ele ("Paciente: ...").
-6. Teste **Esqueci minha senha** com o e-mail do paciente de teste.
+6. Na ficha do paciente com a dieta montada, clique em **Exportar PDF**, escolha o conteúdo e **Gerar PDF**. O arquivo baixa na hora, com o logo e as cores da Ayllus.
+7. Teste **Esqueci minha senha** com o e-mail do paciente de teste.
 
 ## Passo 7. Banco de alimentos (antes de atender pacientes de verdade)
 

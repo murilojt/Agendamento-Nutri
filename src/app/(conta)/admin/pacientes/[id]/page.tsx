@@ -12,10 +12,14 @@ import { LinhaRefeicao } from "@/components/dieta/LinhaRefeicao";
 import { AnaliseNutrientes } from "@/components/dieta/AnaliseNutrientes";
 import { ChipsMacros } from "@/components/dieta/Macros";
 import { MensagensEConsultas } from "@/components/dieta/MensagensEConsultas";
+import { ExportarPdfModal } from "@/components/dieta/ExportarPdfModal";
+import { baixarPdfDieta } from "@/components/dieta/gerarPdf";
+import { supabase } from "@/lib/supabase";
+import type { OpcoesPdf } from "@/lib/pdfDieta.ts";
 import { AnamneseModal, DadosPacienteModal, FavoritasModal, ListaComprasModal, ProtocoloModal, TextoModal } from "@/components/dieta/Formularios";
 import { IcoMais } from "@/components/dieta/Icones";
 
-type Janela = "protocolo" | "dados" | "anamnese" | "favoritas" | "suplementos" | "receitas" | "compras" | null;
+type Janela = "pdf" | "protocolo" | "dados" | "anamnese" | "favoritas" | "suplementos" | "receitas" | "compras" | null;
 
 const idade = (nasc: string | null) => {
   if (!nasc) return null;
@@ -44,6 +48,27 @@ export default function PacientePage() {
   const alternar = (rid: string) => setExpandidas((s) => { const n = new Set(s); if (n.has(rid)) n.delete(rid); else n.add(rid); return n; });
   const todasAbertas = d.refeicoes.length > 0 && d.refeicoes.every((r) => expandidas.has(r.id));
   const borda = { borderColor: "var(--color-border)", background: "var(--color-surface)" };
+
+  async function gerarPdf(opcoes: OpcoesPdf): Promise<string> {
+    if (!dieta || !paciente) throw new Error("sem dieta");
+    // nome de quem elabora a dieta (a nutricionista logada)
+    let nutricionista: string | null = null;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) nutricionista = (await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle()).data?.full_name ?? null;
+    } catch {
+      // sem o nome, o PDF sai sem a linha "Elaborado por"
+    }
+    return baixarPdfDieta({
+      clinica: process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Ayllus Nutrição",
+      nutricionista,
+      paciente,
+      dieta,
+      refeicoes: d.refeicoes,
+      itens: d.itens,
+      opcoes,
+    });
+  }
 
   async function soltar(sobreId: string) {
     if (!arrastando || arrastando === sobreId) return;
@@ -81,11 +106,21 @@ export default function PacientePage() {
           <Link href="/admin" className="text-sm font-semibold underline">Voltar para pacientes</Link>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-5">
           <button type="button" disabled={!dieta} onClick={() => setJanela("protocolo")} className={`${botaoSecundario} disabled:opacity-50`} style={borda}>Protocolo nutricional</button>
           <button type="button" onClick={() => setJanela("anamnese")} className={botaoSecundario} style={borda}>Ver anamnese</button>
           <button type="button" onClick={() => setJanela("favoritas")} className={botaoSecundario} style={borda}>Refeições favoritas</button>
           <a href="#mensagens" className={`${botaoSecundario} text-center`} style={borda}>Consultas e mensagens</a>
+          <button
+            type="button"
+            disabled={!dieta}
+            onClick={() => setJanela("pdf")}
+            className={`${botaoSecundario} disabled:opacity-50`}
+            style={{ background: "var(--color-primary)", color: "var(--color-on-primary)", borderColor: "var(--color-primary)" }}
+            title={dieta ? "Baixar a dieta em PDF" : "Crie a dieta para exportar"}
+          >
+            Exportar PDF
+          </button>
         </div>
       </Card>
 
@@ -175,6 +210,7 @@ export default function PacientePage() {
 
       <MensagensEConsultas patientId={id} />
 
+      <ExportarPdfModal aberto={janela === "pdf"} aoFechar={fechar} gerar={gerarPdf} semRefeicoes={d.refeicoes.length === 0} />
       <DadosPacienteModal aberto={janela === "dados"} aoFechar={fechar} paciente={paciente} salvar={d.salvarPaciente} />
       <AnamneseModal aberto={janela === "anamnese"} aoFechar={fechar} ler={d.lerAnamnese} salvar={d.salvarAnamnese} />
       <FavoritasModal aberto={janela === "favoritas"} aoFechar={fechar} favoritas={d.favoritas} usar={dieta ? d.usarFavorita : async () => {}} apagar={d.apagarFavorita} />

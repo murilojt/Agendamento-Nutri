@@ -1,0 +1,3 @@
+Fontes usadas na geração do PDF da dieta (subconjunto latino).
+Playfair Display e Hanken Grotesk, distribuídas sob a SIL Open Font License 1.1 (https://openfontlicense.org),
+via pacotes @fontsource. A HK Grotesk do brandbook não está disponível em Google Fonts; Hanken Grotesk é a equivalente.
