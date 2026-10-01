@@ -88,10 +88,12 @@ Sem isso, o e-mail de "esqueci minha senha" não volta para o seu site.
 
 O montador de dietas calcula tudo a partir do banco de alimentos (valores por 100 g). Os 30 alimentos do script `07` são **aproximados e só servem para testar**.
 
-1. Baixe a **TACO** (Tabela Brasileira de Composição de Alimentos, NEPA/Unicamp) e abra no Excel.
-2. Deixe as colunas nesta ordem de nomes: `Alimento; Energia (kcal); Proteína (g); Lipídeos (g); Carboidrato (g); Fibra alimentar (g)` e salve como **CSV**.
+1. Baixe a **TACO** (Tabela Brasileira de Composição de Alimentos, NEPA/Unicamp) e salve como **CSV** (no Excel: Salvar como → CSV).
+2. Pode usar a planilha **completa** da TACO. O sistema usa as colunas *Descrição dos alimentos*, *Energia (kcal)*, *Proteína*, *Lipídeos*, *Carboidrato* e *Fibra alimentar* e ignora as demais (número, categoria, vitaminas, minerais...). Também serve uma planilha simples com essas colunas.
 3. No painel, abra **Alimentos → Importar a TACO (CSV)** e escolha o arquivo. O sistema avisa quantos entraram, quantos já existiam e quais linhas tinham problema ("Tr" e "NA" viram zero).
-4. Depois de importar, clique em **Apagar referência** para remover os 30 aproximados.
+   - Se a importação saiu errada, use **Apagar os N importados (refazer importação)** e importe de novo.
+   - Alimentos de referência (script `07`) com o mesmo nome de um da TACO fazem a TACO ser ignorada naquele item. Por isso, **apague a referência antes de importar**.
+4. Apague os 30 aproximados com **Apagar referência** (antes de importar, como acima).
 5. Alimentos que não estão na TACO (marcas, receitas) você cadastra à mão em **+ Novo alimento**.
 
 ## Passo 8. Segurança (não pule)

@@ -96,3 +96,26 @@ test("meta teórica sem peso devolve nulos", () => {
   assert.deepEqual(m, { kcal: null, protein_g: null, fat_g: null, carb_g: null });
   assert.equal(metaTeorica({ target_kcal: 1800, target_protein_gkg: null, target_fat_gkg: null, target_carb_gkg: null }, null).kcal, 1800);
 });
+
+test("CSV da TACO completa: usa a descrição (e não o número) como nome e a energia em kcal (não kJ)", () => {
+  const csv = "Número do Alimento;Categoria do alimento;Descrição dos alimentos;Umidade (%);Energia (kcal);Energia (kJ);Proteína (g);Lipídeos (g);Colesterol (mg);Carboidrato (g);Fibra Alimentar (g);Cinzas (g)\n" +
+    "1;Cereais e derivados;Arroz, integral, cozido;70,1;124;517;2,6;1;NA;25,8;2,7;0,5\n" +
+    "3;Cereais e derivados;Arroz, tipo 1, cozido;69,1;128;537;2,5;0,2;NA;28,1;1,6;0,1\n" +
+    "10;Cereais e derivados;Bolo, pronto, chocolate;22,4;410;1715;6,2;18,3;NA;61,0;Tr;1,2\n";
+  const r = lerCsvAlimentos(csv);
+  assert.equal(r.erros.length, 0);
+  assert.deepEqual(r.alimentos.map((a) => a.name), ["Arroz, integral, cozido", "Arroz, tipo 1, cozido", "Bolo, pronto, chocolate"]);
+  assert.deepEqual(r.alimentos[0], { name: "Arroz, integral, cozido", kcal: 124, protein_g: 2.6, fat_g: 1, carb_g: 25.8, fiber_g: 2.7 });
+  assert.equal(r.alimentos[2].fiber_g, 0);
+});
+
+test("CSV simples com coluna chamada só 'Nome' continua funcionando", () => {
+  const r = lerCsvAlimentos("Nome;kcal;Proteína;Lipídios;Carboidratos\nPão;250;8;3;50\n");
+  assert.deepEqual(r.alimentos, [{ name: "Pão", kcal: 250, protein_g: 8, fat_g: 3, carb_g: 50, fiber_g: 0 }]);
+});
+
+test("planilha cujos nomes são só números é recusada com aviso claro", () => {
+  const r = lerCsvAlimentos("Nome;kcal;Proteína;Lipídios;Carboidratos\n1;100;1;1;1\n2;120;2;2;2\n");
+  assert.equal(r.alimentos.length, 0);
+  assert.match(r.erros[0], /parecem números/);
+});

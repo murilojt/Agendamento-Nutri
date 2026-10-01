@@ -11,6 +11,16 @@ import { TextField } from "@/components/ui/TextField";
 import { Modal } from "@/components/dieta/Modal";
 
 const num = (v: unknown) => (v == null ? 0 : Number(v));
+
+/** Lê o arquivo como UTF-8; se não for (Excel antigo salva em Windows-1252), lê nessa codificação para não quebrar os acentos. */
+async function lerTexto(arquivo: File): Promise<string> {
+  const bytes = await arquivo.arrayBuffer();
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return new TextDecoder("windows-1252").decode(bytes);
+  }
+}
 type Form = { id: string | null; name: string; kcal: string; protein_g: string; fat_g: string; carb_g: string; fiber_g: string };
 const vazio: Form = { id: null, name: "", kcal: "", protein_g: "", fat_g: "", carb_g: "", fiber_g: "" };
 const ORIGEM: Record<string, string> = { taco: "TACO", referencia: "Referência (aprox.)", custom: "Cadastrado" };
@@ -47,6 +57,7 @@ export default function AlimentosPage() {
 
   const lista = useMemo(() => (busca.trim() ? buscarAlimentos(alimentos, busca, 100) : alimentos.slice(0, 100)), [alimentos, busca]);
   const aprox = alimentos.filter((a) => a.source === "referencia").length;
+  const importados = alimentos.filter((a) => a.source === "taco").length;
 
   async function salvar(e: React.FormEvent) {
     e.preventDefault();
@@ -79,12 +90,20 @@ export default function AlimentosPage() {
     await carregar();
   }
 
+  async function apagarImportados() {
+    if (!window.confirm(`Apagar os ${importados} alimentos importados (TACO)? Use isto para refazer uma importação que saiu errada. As dietas já montadas não mudam.`)) return;
+    const { error } = await supabase.from("foods").delete().eq("source", "taco");
+    if (error) return setErro("Não foi possível apagar os alimentos importados.");
+    setRelatorioCsv(null);
+    await carregar();
+  }
+
   async function importar(arquivo: File | undefined) {
     if (!arquivo) return;
     setImportando(true);
     setRelatorioCsv(null);
     try {
-      const { alimentos: novos, erros } = lerCsvAlimentos(await arquivo.text());
+      const { alimentos: novos, erros } = lerCsvAlimentos(await lerTexto(arquivo));
       const existentes = new Set(alimentos.map((a) => a.name.trim().toLowerCase()));
       const aInserir = novos.filter((a, i, arr) => !existentes.has(a.name.trim().toLowerCase()) && arr.findIndex((o) => o.name.trim().toLowerCase() === a.name.trim().toLowerCase()) === i);
       const repetidos = novos.length - aInserir.length;
@@ -126,13 +145,17 @@ export default function AlimentosPage() {
       <Card className="mb-6 p-5">
         <h2 className="mb-2 text-xl">Importar a TACO (CSV)</h2>
         <p className="mb-3 text-sm" style={{ color: "var(--color-text-muted)" }}>
-          Baixe a Tabela Brasileira de Composição de Alimentos (NEPA/Unicamp), abra no Excel e salve como <strong>CSV</strong> com as colunas:{" "}
-          <em>Alimento; Energia (kcal); Proteína (g); Lipídeos (g); Carboidrato (g); Fibra alimentar (g)</em>. Valores &quot;Tr&quot; e &quot;NA&quot; viram zero. Nomes repetidos são ignorados.
+          Use a Tabela Brasileira de Composição de Alimentos (NEPA/Unicamp) salva como <strong>CSV</strong>. Serve a planilha completa da TACO (colunas <em>Descrição dos alimentos, Energia (kcal), Proteína, Lipídeos, Carboidrato, Fibra</em> e as demais são ignoradas) ou uma planilha simples com essas colunas. Valores &quot;Tr&quot; e &quot;NA&quot; viram zero. Nomes repetidos são ignorados.
         </p>
         <label className="inline-block cursor-pointer rounded-full px-5 py-2.5 text-sm font-semibold" style={{ background: "var(--color-primary)", color: "var(--color-on-primary)" }}>
           {importando ? "Importando..." : "Escolher arquivo CSV"}
           <input type="file" accept=".csv,text/csv" className="sr-only" disabled={importando} onChange={(e) => { importar(e.target.files?.[0]); e.target.value = ""; }} />
         </label>
+        {importados > 0 && (
+          <button type="button" onClick={apagarImportados} className="ml-3 text-sm font-semibold underline" style={{ color: "var(--color-danger)" }}>
+            Apagar os {importados} importados (refazer importação)
+          </button>
+        )}
         {relatorioCsv && (
           <ul className="mt-3 text-sm" role="status">
             {relatorioCsv.map((l, i) => <li key={i}>{l}</li>)}

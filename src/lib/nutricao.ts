@@ -198,9 +198,18 @@ export function lerCsvAlimentos(texto: string): { alimentos: AlimentoCsv[]; erro
   };
 
   const cab = separa(linhas[0]).map(normaliza);
-  const acha = (...nomes: string[]) => cab.findIndex((c) => nomes.some((n) => c.includes(n)));
+  // Procura por prioridade: cada termo é tentado em ordem, e colunas de apoio (número, categoria, kJ) são ignoradas.
+  // Na TACO completa, "Número do Alimento" vem antes de "Descrição dos alimentos".
+  const IGNORADAS = /numero|categoria|\(kj\)|\bkj\b/;
+  const acha = (...nomes: string[]) => {
+    for (const n of nomes) {
+      const i = cab.findIndex((c) => !IGNORADAS.test(c) && c.includes(n));
+      if (i >= 0) return i;
+    }
+    return -1;
+  };
   const col = {
-    name: acha("alimento", "nome", "descricao"),
+    name: acha("descricao", "nome", "alimento"),
     kcal: acha("kcal", "energia", "caloria"),
     protein_g: acha("proteina"),
     fat_g: acha("lipid", "gordura"),
@@ -236,5 +245,9 @@ export function lerCsvAlimentos(texto: string): { alimentos: AlimentoCsv[]; erro
     if (CAMPOS.some((k) => Number.isNaN(a[k]) || a[k] < 0)) erros.push(`Linha ${idx + 2} (${name}): valor numérico inválido.`);
     else alimentos.push(a);
   });
+  // Proteção contra planilha com a coluna errada: se a maioria dos "nomes" for só número, não importa nada.
+  if (alimentos.length > 0 && alimentos.filter((a) => /^[\d.,\s]+$/.test(a.name)).length > alimentos.length / 2) {
+    return { alimentos: [], erros: ["Os nomes dos alimentos parecem números. Confira se a coluna com o nome (ex.: \"Descrição dos alimentos\") está no arquivo."] };
+  }
   return { alimentos, erros };
 }
