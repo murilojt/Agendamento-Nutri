@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { criarClienteAgenda, ErroAgenda } from "@/core/cliente-api";
 import { diaDaSemana, diasDoMes, horaLocal, janelaDeMeses, somarMeses } from "@/core/disponibilidade";
@@ -195,7 +196,10 @@ export function CalendarioAgendamento() {
               Tudo certo, {concluido.nome}. Sua consulta está marcada para{" "}
               <strong>{fmtDia.format(comoData(concluido.inicio.slice(0, 10)))} às {horaLocal(new Date(concluido.inicio))}</strong>.
             </p>
-            <button className="botao" onClick={fecharFormulario}>Fechar</button>
+            <div className="concluido-acoes">
+              <Link href="/" className="botao">Voltar para a página inicial</Link>
+              <button className="botao-secundario" onClick={fecharFormulario}>Agendar outro horário</button>
+            </div>
           </div>
         )}
       </dialog>
