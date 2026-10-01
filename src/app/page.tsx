@@ -40,7 +40,7 @@ export default function Inicio() {
             <div className="arco-disco" />
             <div className="arco-moldura">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/marca/ayllus-isotipo.png" alt="" width={168} height={191} />
+              <img src="/marca/ayllus-isotipo-dourado.svg" alt="" width={168} height={191} />
             </div>
             <div className="arco-selo a">Plano 100% personalizado</div>
             <div className="arco-selo b">Sem alimentos proibidos</div>
