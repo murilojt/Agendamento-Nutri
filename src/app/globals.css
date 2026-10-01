@@ -30,9 +30,10 @@
   --raio-lg: 28px;
   --raio-xl: 40px;
 }
-/* O brandbook não define tema escuro: esta versão é derivada da mesma paleta. */
+/* O brandbook não define tema escuro: esta versão é derivada da mesma paleta.
+   Segue o aparelho por padrão; o botão do topo grava a escolha em data-theme. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --fundo: #171110;
     --fundo-alt: #211817;
     --superficie: #2a1f1d;
@@ -51,6 +52,25 @@
     --erro-fundo: #3a1f1a;
     --sombra: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
   }
+}
+:root[data-theme="dark"] {
+  --fundo: #171110;
+  --fundo-alt: #211817;
+  --superficie: #2a1f1d;
+  --tinta: #f3e8da;
+  --tinta-suave: #c4b3a3;
+  --linha: #43332f;
+  --folha: #d6ad6f;
+  --sobre-folha: #2b1a17;
+  --broto: #3a2b27;
+  --gema-suave: #3a2d1e;
+  --terracota: #e0a08c;
+  --profundo: #3a1316;
+  --sobre-profundo: #f3e8da;
+  --sobre-profundo-suave: #d2bcab;
+  --erro: #f29a88;
+  --erro-fundo: #3a1f1a;
+  --sombra: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
 }
 
 * { box-sizing: border-box; }
@@ -103,9 +123,20 @@ button, input { font: inherit; color: inherit; }
 .logo-isotipo { height: 2.5rem; }
 .logo-nome { height: 1.9rem; }
 .topo .botao { background: var(--gema); color: var(--sobre-gema); }
+.topo-acoes { display: flex; align-items: center; gap: 0.5rem; }
+.tema {
+  width: 2.75rem; height: 2.75rem; border-radius: 50%; border: 1.5px solid var(--gema); background: none;
+  color: var(--gema); display: grid; place-items: center; cursor: pointer; padding: 0;
+}
+.tema:hover { background: rgba(214, 173, 111, 0.18); }
+.tema:focus-visible { outline-color: var(--gema); }
+.tema svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tema .sol { display: none; }
+.tema[data-escuro="true"] .sol { display: block; }
+.tema[data-escuro="true"] .lua { display: none; }
 .logo { white-space: nowrap; }
 .botao-pequeno { white-space: nowrap; }
-@media (max-width: 420px) { .topo { padding-left: 1.1rem; } .logo-isotipo { height: 2.1rem; } .logo-nome { height: 1.5rem; } .logo { gap: 0.5rem; } .botao-pequeno { padding: 0 1rem; font-size: 0.875rem; } }
+@media (max-width: 420px) { .topo { padding: 0.45rem 0.45rem 0.45rem 0.9rem; gap: 0.5rem; } .topo-acoes { gap: 0.35rem; } .tema { width: 2.4rem; height: 2.4rem; } .logo-isotipo { height: 1.9rem; } .logo-nome { height: 1.3rem; } .logo { gap: 0.4rem; } .botao-pequeno { padding: 0 0.85rem; font-size: 0.85rem; min-height: 2.5rem; } }
 .rodape { max-width: var(--largura); margin: 0 auto; padding: 2.5rem 1.25rem 3rem; color: var(--tinta-suave); font-size: 0.9rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; }
 .rodape .lema { font-family: var(--fonte-titulo); font-style: italic; color: var(--terracota); font-size: 1.1rem; }
 
@@ -259,3 +290,4 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .concluido h2 { font-size: 2.25rem; }
 @keyframes surgir { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
+@media (max-width: 350px) { .logo-isotipo { display: none; } .botao-pequeno { padding: 0 0.7rem; font-size: 0.8rem; } }

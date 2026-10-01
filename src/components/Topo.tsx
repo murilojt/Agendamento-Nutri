@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotaoTema } from "./BotaoTema";
 
 export function Topo({ nome, mostrarBotao = true }: { nome: string; mostrarBotao?: boolean }) {
   return (
@@ -10,7 +11,10 @@ export function Topo({ nome, mostrarBotao = true }: { nome: string; mostrarBotao
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/marca/ayllus-logotipo-dourado.svg" alt={nome} width={370} height={100} className="logo-nome" />
         </Link>
-        {mostrarBotao && <Link href="/agendar" className="botao botao-pequeno">Agendar consulta</Link>}
+        <div className="topo-acoes">
+          <BotaoTema />
+          {mostrarBotao && <Link href="/agendar" className="botao botao-pequeno">Agendar consulta</Link>}
+        </div>
       </header>
     </div>
   );
