@@ -28,6 +28,8 @@ A **Google Agenda continua mandando na disponibilidade** (horários livres e ocu
 
 Se o Supabase estiver fora do ar ou não configurado, o agendamento na Google Agenda funciona do mesmo jeito.
 
+> **Quer colocar no ar? Siga [docs/COLOCAR-NO-AR.md](docs/COLOCAR-NO-AR.md).**
+
 ## Rodando localmente
 
 ```bash
@@ -56,7 +58,7 @@ Rode os scripts de [`supabase/`](supabase/LEIAME.md) na ordem (01 a 05). Depois,
 
 ## Publicar (Vercel, plano gratuito)
 
-Importe o repositório na Vercel e cadastre as variáveis acima em **Settings → Environment Variables**. No Supabase, em **Authentication → URL Configuration**, adicione o endereço do site em *Site URL* e em *Redirect URLs* (`https://SEU-SITE/redefinir-senha`), senão o link de "esqueci a senha" não volta para cá.
+Passo a passo completo em [docs/COLOCAR-NO-AR.md](docs/COLOCAR-NO-AR.md). Resumo: importe o repositório na Vercel e cadastre as variáveis acima em **Settings → Environment Variables**. No Supabase, em **Authentication → URL Configuration**, adicione o endereço do site em *Site URL* e em *Redirect URLs* (`https://SEU-SITE/redefinir-senha`), senão o link de "esqueci a senha" não volta para cá.
 
 ## Estrutura
 

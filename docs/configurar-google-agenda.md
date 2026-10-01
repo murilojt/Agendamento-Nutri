@@ -20,8 +20,8 @@ Feito uma única vez. Leva uns 15 minutos.
 3. Na mesma página, em **Integrar agenda**, copie o **ID da agenda**
    (para a agenda principal, é o próprio e-mail da nutricionista).
 
-## 4. Preencher o arquivo `.env`
-Copie `.env.example` para `.env` e preencha com os dados do JSON baixado:
+## 4. Preencher as variáveis
+Na Vercel, cadastre-as em **Settings → Environment Variables** (veja [COLOCAR-NO-AR.md](COLOCAR-NO-AR.md)). Para rodar no seu computador, copie `.env.example` para `.env.local` e preencha com os dados do JSON baixado:
 
 ```
 GOOGLE_CLIENT_EMAIL=<campo "client_email" do JSON>
@@ -29,7 +29,7 @@ GOOGLE_PRIVATE_KEY="<campo "private_key" do JSON, entre aspas, mantendo os \n>"
 GOOGLE_CALENDAR_ID=<ID da agenda do passo 3>
 ```
 
-Reinicie o `npm run dev`. Pronto: os horários passam a vir da agenda real.
+No computador, reinicie o `npm run dev`; na Vercel, faça um **Redeploy**. Pronto: os horários passam a vir da agenda real.
 
 ## Como o bloqueio de horários funciona
 - O calendário do site consulta a agenda (horários livres/ocupados) e se atualiza sozinho a cada 30 segundos.
