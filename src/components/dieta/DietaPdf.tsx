@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { Document, Font, Page, Path, Polygon, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Image, Page, Path, Polygon, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import type { DadosPdf, LogoVetorial, RefeicaoPdf } from "@/lib/pdfDieta.ts";
 import type { LinhaCompra as LinhaCompraTipo } from "@/lib/nutricao.ts";
 
@@ -40,7 +40,7 @@ export function registrarFontes(origem: string) {
 }
 
 const s = StyleSheet.create({
-  pagina: { paddingTop: 36, paddingBottom: 58, paddingHorizontal: 36, fontFamily: "Hanken", fontSize: 10, color: TINTA },
+  pagina: { paddingTop: 36, paddingBottom: 96, paddingHorizontal: 36, fontFamily: "Hanken", fontSize: 10, color: TINTA },
   faixa: { backgroundColor: VINHO, marginTop: -36, marginHorizontal: -36, paddingHorizontal: 36, paddingVertical: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   marca: { flexDirection: "row", alignItems: "center" },
   faixaTitulo: { fontFamily: "Playfair", fontWeight: 500, fontSize: 18, color: CREME, textAlign: "right" },
@@ -73,9 +73,11 @@ const s = StyleSheet.create({
   tabelaLinha: { flexDirection: "row", paddingVertical: 4.5, borderBottomWidth: 0.5, borderBottomColor: AREIA },
   celCab: { fontSize: 8, fontWeight: 700, color: MUDO, letterSpacing: 0.6 },
   texto: { fontSize: 10, lineHeight: 1.5 },
-  rodape: { position: "absolute", bottom: 22, left: 36, right: 36, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 0.75, borderTopColor: LINHA, paddingTop: 6 },
-  rodapeTexto: { fontSize: 8, color: MUDO },
-  rodapeLema: { fontFamily: "Playfair", fontStyle: "italic", fontWeight: 500, fontSize: 8.5, color: DOURADO },
+  rodape: { position: "absolute", bottom: 20, left: 36, right: 36, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", borderTopWidth: 0.75, borderTopColor: LINHA, paddingTop: 7 },
+  rodapeEsq: { flexGrow: 1, flexBasis: 0 },
+  rodapeDir: { width: 160, alignItems: "flex-end", justifyContent: "flex-end" },
+  rodapeTexto: { fontSize: 8, color: MUDO, lineHeight: 1.45 },
+  rodapePagina: { position: "absolute", left: 0, right: 0, bottom: 0, textAlign: "center", fontSize: 7.5, color: MUDO },
 });
 
 const num = (n: number, casas = 1) => n.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
@@ -262,9 +264,19 @@ export function DietaPdf({ d }: { d: DadosPdf }) {
           </View>
         )}
 
+        {/* Rodapé de todas as páginas: dados da clínica à esquerda e assinatura da nutricionista à direita */}
         <View style={s.rodape} fixed>
-          <Text style={s.rodapeLema}>{d.clinica}  ·  {d.lema}</Text>
-          <Text style={s.rodapeTexto} render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
+          <View style={s.rodapeEsq}>
+            {d.rodape.linhas.map((l, i) => (
+              <Text key={i} style={[s.rodapeTexto, i === 0 ? { fontWeight: 600 } : {}]}>{l}</Text>
+            ))}
+          </View>
+          <Text style={s.rodapePagina} render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
+          <View style={s.rodapeDir}>
+            {d.rodape.assinatura && d.rodape.assinaturaMedidas && (
+              <Image src={d.rodape.assinatura} style={{ width: d.rodape.assinaturaMedidas.largura, height: d.rodape.assinaturaMedidas.altura }} />
+            )}
+          </View>
         </View>
       </Page>
     </Document>

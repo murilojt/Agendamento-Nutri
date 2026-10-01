@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { comPadrao } from "../src/lib/rodapePdf.ts";
 import { idadeEm, lerSvgVetorial, montarDadosPdf, nomeDoArquivoPdf, OPCOES_PADRAO, type EntradaPdf } from "../src/lib/pdfDieta.ts";
 
 const item = (id: string, meal_id: string, name: string, g: number, kcal: number, p: number, l: number, c: number, position = 0) => ({
@@ -22,6 +23,7 @@ const entrada = (over: Partial<EntradaPdf> = {}): EntradaPdf => ({
   opcoes: { ...OPCOES_PADRAO },
   agora: new Date(2026, 9, 5, 10, 0),
   logos: { isotipo: null, logotipo: null },
+  rodape: comPadrao(null),
   ...over,
 });
 
@@ -81,4 +83,17 @@ test("SVG vetorial: lê viewBox, paths e polígonos", () => {
   assert.deepEqual(l.formas[1], { tipo: "polygon", pontos: "1,2 3,4 5,6" });
   assert.equal(lerSvgVetorial("<svg></svg>"), null);
   assert.equal(lerSvgVetorial('<svg viewBox="0 0 10 10"></svg>'), null);
+});
+
+test("rodapé do PDF: 4 linhas da clínica à esquerda e, se houver, a assinatura com medidas proporcionais", () => {
+  const sem = montarDadosPdf(entrada());
+  assert.deepEqual(sem.rodape.linhas, ["Clínica Ayllus | Nutricionista Mariana Fernandes", "CRN3 61672", "Tel.:(11) 91365-7788", "E-mail: nutri.marianafernandes@gmail.com"]);
+  assert.equal(sem.rodape.assinatura, null);
+  assert.equal(sem.rodape.assinaturaMedidas, null);
+  const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAAAwCAYAAAC";
+  const com = montarDadosPdf(entrada({ rodape: { ...comPadrao(null), signature_data: PNG } }));
+  assert.equal(com.rodape.assinatura, PNG);
+  assert.deepEqual(com.rodape.assinaturaMedidas, { largura: 88, altura: 48 }); // PNG 0x58 x 0x30 = 88 x 48
+  // imagem inválida (WebP) é ignorada em vez de quebrar o PDF
+  assert.equal(montarDadosPdf(entrada({ rodape: { ...comPadrao(null), signature_data: "data:image/webp;base64,AAAA" } })).rodape.assinatura, null);
 });

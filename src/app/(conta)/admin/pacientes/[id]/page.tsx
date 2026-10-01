@@ -16,6 +16,7 @@ import { ExportarPdfModal } from "@/components/dieta/ExportarPdfModal";
 import { baixarPdfDieta } from "@/components/dieta/gerarPdf";
 import { supabase } from "@/lib/supabase";
 import type { OpcoesPdf } from "@/lib/pdfDieta.ts";
+import { carregarConfigRodape } from "@/lib/configuracoesNutri";
 import { AnamneseModal, DadosPacienteModal, FavoritasModal, ListaComprasModal, ProtocoloModal, TextoModal } from "@/components/dieta/Formularios";
 import { IcoMais } from "@/components/dieta/Icones";
 
@@ -59,7 +60,9 @@ export default function PacientePage() {
     } catch {
       // sem o nome, o PDF sai sem a linha "Elaborado por"
     }
+    const { config: rodape } = await carregarConfigRodape(); // dados do rodapé e assinatura (padrão se ainda não configurou)
     return baixarPdfDieta({
+      rodape,
       clinica: process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Ayllus Nutrição",
       nutricionista,
       paciente,

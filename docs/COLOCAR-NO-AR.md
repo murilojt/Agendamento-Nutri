@@ -109,7 +109,16 @@ Como importar:
 
 Alimentos que não estão em nenhuma tabela (marcas, receitas) você cadastra à mão em **+ Novo alimento**. Confira os termos de uso da TACO e da TBCA antes de importar.
 
-## Passo 8. Segurança (não pule)
+## Passo 8. Assinatura e rodapé do PDF
+
+1. No Supabase, rode **`09-assinatura-e-rodape-do-pdf.sql`**.
+2. No painel, abra **Assinatura e PDF** (menu lateral).
+3. Clique em **Escolher imagem** e envie a assinatura (PNG, JPG ou WebP; fundo branco ou transparente). Ela é reduzida automaticamente.
+4. Confira os dados do rodapé (já vêm preenchidos com o padrão da clínica: *Clínica Ayllus | Nutricionista Mariana Fernandes*, CRN, telefone e e-mail) e clique em **Salvar**.
+
+No PDF da dieta, em **todas as páginas**, o texto da clínica sai no canto inferior esquerdo e a assinatura no canto inferior direito. Cada nutricionista tem a própria assinatura e os próprios dados.
+
+## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.
 - Se algum repositório for público, torne-o privado (GitHub → Settings → Danger Zone → Change visibility).

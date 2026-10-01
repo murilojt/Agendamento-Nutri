@@ -2,6 +2,7 @@
  * Dados do PDF da dieta. Funções puras (sem React e sem a biblioteca de PDF), para poderem ser testadas.
  * O desenho do documento fica em src/components/dieta/DietaPdf.tsx e só é carregado quando a pessoa exporta.
  */
+import { assinaturaValida, dimensoesDaImagem, linhasDoRodape, medidasDaAssinatura, type ConfigRodape } from "./rodapePdf.ts";
 import { analisar, distribuicao, listaDeCompras, somar, type ItemRefeicao, type LinhaAnalise, type LinhaCompra, type Macros, type Protocolo } from "./nutricao.ts";
 
 export type OpcoesPdf = {
@@ -42,7 +43,6 @@ export type RefeicaoPdf = {
 
 export type DadosPdf = {
   clinica: string;
-  lema: string;
   nutricionista: string | null;
   paciente: { nome: string; idade: number | null; pesoKg: number | null; alturaCm: number | null };
   titulo: string;
@@ -57,6 +57,8 @@ export type DadosPdf = {
   opcoes: OpcoesPdf;
   geradoEm: string; // ISO
   logos: { isotipo: LogoVetorial | null; logotipo: LogoVetorial | null };
+  /** Rodapé de todas as páginas: texto da clínica à esquerda e assinatura à direita */
+  rodape: { linhas: string[]; assinatura: string | null; assinaturaMedidas: { largura: number; altura: number } | null };
 };
 
 export type EntradaPdf = {
@@ -69,9 +71,9 @@ export type EntradaPdf = {
   opcoes: OpcoesPdf;
   agora: Date;
   logos: DadosPdf["logos"];
+  /** Configurações já com o padrão aplicado (comPadrao) */
+  rodape: ConfigRodape;
 };
-
-export const LEMA = "Nutrir o corpo, acolher a mente, cultivar o ser.";
 
 /** Idade em anos completos na data `ref` (nascimento "AAAA-MM-DD"). */
 export function idadeEm(nascimento: string | null, ref: Date): number | null {
@@ -101,7 +103,6 @@ export function montarDadosPdf(e: EntradaPdf): DadosPdf {
 
   return {
     clinica: e.clinica,
-    lema: LEMA,
     nutricionista: e.nutricionista,
     paciente: { nome: e.paciente.full_name?.trim() || "Paciente", idade: idadeEm(e.paciente.birth_date, e.agora), pesoKg: e.paciente.weight_kg, alturaCm: e.paciente.height_cm },
     titulo: e.dieta.title,
@@ -116,6 +117,15 @@ export function montarDadosPdf(e: EntradaPdf): DadosPdf {
     opcoes: e.opcoes,
     geradoEm: e.agora.toISOString(),
     logos: e.logos,
+    rodape: {
+      linhas: linhasDoRodape(e.rodape),
+      assinatura: assinaturaValida(e.rodape.signature_data) ? e.rodape.signature_data : null,
+      assinaturaMedidas: (() => {
+        if (!assinaturaValida(e.rodape.signature_data)) return null;
+        const dim = dimensoesDaImagem(e.rodape.signature_data);
+        return dim ? medidasDaAssinatura(dim.largura, dim.altura) : medidasDaAssinatura(0, 0);
+      })(),
+    },
   };
 }
 
