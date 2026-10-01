@@ -29,7 +29,12 @@ export function criarClienteAgenda(baseUrl = "") {
   return {
     disponibilidadeDoMes: (mes: string) =>
       chamar<DisponibilidadeMes>(`/api/disponibilidade?mes=${mes}`),
-    agendar: (dados: NovoAgendamento) =>
-      chamar<AgendamentoCriado>("/api/agendamentos", { method: "POST", body: JSON.stringify(dados) }),
+    /** `token`: access token do Supabase, quando quem agenda é um paciente logado (vincula a consulta a ele). */
+    agendar: (dados: NovoAgendamento, token?: string) =>
+      chamar<AgendamentoCriado>("/api/agendamentos", {
+        method: "POST",
+        body: JSON.stringify(dados),
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      }),
   };
 }

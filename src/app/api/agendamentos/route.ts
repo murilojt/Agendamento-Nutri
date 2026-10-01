@@ -4,6 +4,7 @@ import { dataLocal, horariosDoDia, isoLocal, montarDataHora, somarDias } from "@
 import { novoAgendamentoSchema, type AgendamentoCriado } from "@/core/schemas";
 import { getCalendario, HorarioOcupadoError } from "@/lib/calendario";
 import { erro, erroValidacao } from "@/lib/http";
+import { acharPaciente, gravarConsulta } from "@/lib/servidor/vinculoPaciente";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +32,26 @@ export async function POST(req: NextRequest) {
     if (!horario) return erro(400, "Esse horário não está disponível para agendamento.");
     if (!horario.livre) return erro(409, OCUPADO);
 
-    await calendario.reservar({
+    // Se for um paciente cadastrado, o evento do Google já nasce com o id dele (extendedProperties.private)
+    const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
+    const pacienteId = await acharPaciente(token, email);
+
+    const googleEventId = await calendario.reservar({
       inicio,
       fim,
       titulo: `Consulta: ${nome} ${sobrenome}`,
-      descricao: [`Paciente: ${nome} ${sobrenome}`, `Celular: ${celular}`, `E-mail: ${email}`, "", "Agendado pelo site."].join("\n"),
-      dados: { nome, sobrenome, celular, email },
+      descricao: [
+        `Paciente: ${nome} ${sobrenome}`,
+        `Celular: ${celular}`,
+        `E-mail: ${email}`,
+        pacienteId ? "Paciente cadastrado no sistema." : "",
+        "",
+        "Agendado pelo site.",
+      ].join("\n"),
+      dados: { nome, sobrenome, celular, email, ...(pacienteId ? { pacienteId } : {}) },
     });
+
+    await gravarConsulta({ googleEventId, pacienteId, inicio, fim, nome: `${nome} ${sobrenome}`, email, celular });
 
     return NextResponse.json<AgendamentoCriado>(
       { inicio: isoLocal(inicio), fim: isoLocal(fim), nome },

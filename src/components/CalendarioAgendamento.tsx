@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { criarClienteAgenda, ErroAgenda } from "@/core/cliente-api";
+import { supabase, supabaseConfigurado } from "@/lib/supabase";
 import { diaDaSemana, diasDoMes, horaLocal, janelaDeMeses, somarMeses } from "@/core/disponibilidade";
 import type { AgendamentoCriado, DisponibilidadeMes, Horario } from "@/core/schemas";
 
@@ -29,6 +30,9 @@ export function CalendarioAgendamento() {
   const [enviando, setEnviando] = useState(false);
   const [concluido, setConcluido] = useState<AgendamentoCriado | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
+  // Paciente logado: preenche o formulário e manda o token, para a consulta ficar vinculada à conta dele
+  const token = useRef<string | undefined>(undefined);
+  const base = useRef<Campos>(vazio);
   const mesAtual = useRef(mes);
   mesAtual.current = mes;
 
@@ -40,6 +44,19 @@ export function CalendarioAgendamento() {
       setAviso(e instanceof ErroAgenda ? e.message : "Sem conexão. Verifique sua internet.");
     }
   }, [mes]);
+
+  useEffect(() => {
+    if (!supabaseConfigurado) return;
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const { data: perfil } = await supabase.from("profiles").select("role, full_name").eq("id", session.user.id).maybeSingle();
+      if (perfil?.role !== "patient") return;
+      const [nome, ...resto] = (perfil.full_name ?? "").trim().split(/\s+/);
+      token.current = session.access_token;
+      base.current = { ...vazio, nome: nome ?? "", sobrenome: resto.join(" "), email: session.user.email ?? "" };
+      setCampos(base.current);
+    });
+  }, []);
 
   // Carrega o mês e atualiza sozinho: horários preenchidos por outras pessoas aparecem sem recarregar a página
   useEffect(() => {
@@ -69,7 +86,7 @@ export function CalendarioAgendamento() {
   function fecharFormulario() {
     dialogo.current?.close();
     if (concluido) {
-      setCampos(vazio);
+      setCampos(base.current);
       setConcluido(null);
     }
   }
@@ -80,7 +97,7 @@ export function CalendarioAgendamento() {
     setEnviando(true);
     setErros({});
     try {
-      const criado = await api.agendar({ inicio: escolhido.inicio, ...campos });
+      const criado = await api.agendar({ inicio: escolhido.inicio, ...campos }, token.current);
       setConcluido(criado);
       carregar();
     } catch (err) {
@@ -161,7 +178,7 @@ export function CalendarioAgendamento() {
         )}
       </section>
 
-      <dialog ref={dialogo} className="dialogo" onClose={() => concluido && setCampos(vazio)}>
+      <dialog ref={dialogo} className="dialogo" onClose={() => concluido && setCampos(base.current)}>
         {escolhido && !concluido && (
           <form onSubmit={enviar} noValidate>
             <h2>Seus dados</h2>

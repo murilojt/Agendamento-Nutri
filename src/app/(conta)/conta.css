@@ -1,0 +1,43 @@
+@import "../../styles/marca.css";
+@import "tailwindcss";
+
+/* A área de contas usa Tailwind para o layout e os tokens da marca Ayllus para as cores. */
+:root {
+  --color-bg: var(--fundo);
+  --color-surface: var(--superficie);
+  --color-primary: var(--folha);
+  --color-on-primary: var(--sobre-folha);
+  --color-primary-dark: var(--tinta);
+  --color-text: var(--tinta);
+  --color-text-muted: var(--tinta-suave);
+  --color-border: var(--linha);
+  --color-danger: var(--erro);
+  --font-display: var(--fonte-titulo);
+  --font-body: var(--fonte-texto);
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    color: var(--color-text);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  a { color: inherit; }
+  button { font-family: var(--font-body); cursor: pointer; }
+  input, select, textarea { font-family: var(--font-body); }
+  :focus-visible { outline: 3px solid var(--color-text); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+}

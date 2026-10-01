@@ -10,8 +10,8 @@ export type Reserva = { inicio: Date; fim: Date; titulo: string; descricao: stri
 export interface Calendario {
   /** Intervalos ocupados na agenda entre duas datas. */
   ocupados(de: Date, ate: Date): Promise<Intervalo[]>;
-  /** Cria o evento. Se o horário já tiver reserva do site, lança HorarioOcupadoError. */
-  reservar(reserva: Reserva): Promise<void>;
+  /** Cria o evento e devolve o id dele. Se o horário já tiver reserva do site, lança HorarioOcupadoError. */
+  reservar(reserva: Reserva): Promise<string>;
 }
 
 /**
@@ -71,7 +71,7 @@ class GoogleCalendario implements Calendario {
     }));
   }
 
-  async reservar(reserva: Reserva): Promise<void> {
+  async reservar(reserva: Reserva): Promise<string> {
     const id = idDoEvento(reserva.inicio);
     const cal = encodeURIComponent(this.calendarId);
     const evento = {
@@ -85,7 +85,7 @@ class GoogleCalendario implements Calendario {
     };
 
     const criado = await this.chamar(`/calendars/${cal}/events`, { method: "POST", body: JSON.stringify(evento) });
-    if (criado.ok) return;
+    if (criado.ok) return id;
     if (criado.status !== 409) await this.falhar(criado, "criar evento");
 
     // 409: já existe evento com este id. Se foi cancelado pela nutricionista, reaproveita.
@@ -99,6 +99,7 @@ class GoogleCalendario implements Calendario {
       body: JSON.stringify(evento),
     });
     if (!reativado.ok) await this.falhar(reativado, "reativar evento");
+    return id;
   }
 }
 
@@ -113,11 +114,12 @@ class CalendarioEmMemoria implements Calendario {
     return [...this.eventos.values()].filter((e) => e.inicio < ate && e.fim > de);
   }
 
-  async reservar(reserva: Reserva) {
+  async reservar(reserva: Reserva): Promise<string> {
     const id = idDoEvento(reserva.inicio);
     if (this.eventos.has(id)) throw new HorarioOcupadoError();
     this.eventos.set(id, { inicio: reserva.inicio, fim: reserva.fim });
     console.log(`[agenda de teste] ${reserva.titulo} em ${reserva.inicio.toISOString()}`);
+    return id;
   }
 }
 
