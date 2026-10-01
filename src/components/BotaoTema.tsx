@@ -8,8 +8,7 @@ export function BotaoTema() {
   const [escuro, setEscuro] = useState(false);
 
   useEffect(() => {
-    const atual = document.documentElement.dataset.theme;
-    setEscuro(atual ? atual === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setEscuro(document.documentElement.dataset.theme === "dark");
   }, []);
 
   function alternar() {

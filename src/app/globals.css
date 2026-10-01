@@ -31,28 +31,7 @@
   --raio-xl: 40px;
 }
 /* O brandbook não define tema escuro: esta versão é derivada da mesma paleta.
-   Segue o aparelho por padrão; o botão do topo grava a escolha em data-theme. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --fundo: #171110;
-    --fundo-alt: #211817;
-    --superficie: #2a1f1d;
-    --tinta: #f3e8da;
-    --tinta-suave: #c4b3a3;
-    --linha: #43332f;
-    --folha: #d6ad6f;
-    --sobre-folha: #2b1a17;
-    --broto: #3a2b27;
-    --gema-suave: #3a2d1e;
-    --terracota: #e0a08c;
-    --profundo: #3a1316;
-    --sobre-profundo: #f3e8da;
-    --sobre-profundo-suave: #d2bcab;
-    --erro: #f29a88;
-    --erro-fundo: #3a1f1a;
-    --sombra: 0 18px 40px -18px rgba(0, 0, 0, 0.7);
-  }
-}
+   O site sempre abre no tema claro; só entra no escuro quando a pessoa usa o botão do topo (data-theme). */
 :root[data-theme="dark"] {
   --fundo: #171110;
   --fundo-alt: #211817;
