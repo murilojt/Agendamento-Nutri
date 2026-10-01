@@ -14,7 +14,8 @@ Next.js 16 + TypeScript + Zod + Supabase, com a identidade visual do brandbook A
 | `/paciente` | paciente | dieta, mensagens da nutricionista e próximas consultas |
 | `/admin` | nutricionista | lista de pacientes |
 | `/admin/pacientes/novo` | nutricionista | cadastra paciente (cria o login dele) |
-| `/admin/pacientes/[id]` | nutricionista | dieta, refeições, consultas e mensagens do paciente |
+| `/admin/pacientes/[id]` | nutricionista | **montador de dietas**: refeições com alimentos e macros, protocolo e metas, análise de nutrientes, favoritas, lista de compras, anamnese, consultas e mensagens |
+| `/admin/alimentos` | nutricionista | banco de alimentos: cadastro, edição e importação de CSV (TACO) |
 | `/admin/consultas` | nutricionista | consultas marcadas pelo site, com o paciente vinculado |
 
 ## Como o agendamento se liga ao paciente
@@ -43,7 +44,7 @@ npm run dev     # http://localhost:3000
 
 ## Banco de dados (Supabase)
 
-Rode os scripts de [`supabase/`](supabase/LEIAME.md) na ordem (01 a 05). Depois, para a sua conta virar nutricionista, siga o passo 2 de [docs/COLOCAR-NO-AR.md](docs/COLOCAR-NO-AR.md).
+Rode os scripts de [`supabase/`](supabase/LEIAME.md) na ordem (01 a 06; o 07 é opcional, só para testes). Depois, para a sua conta virar nutricionista, siga o passo 2 de [docs/COLOCAR-NO-AR.md](docs/COLOCAR-NO-AR.md).
 
 ## Variáveis de ambiente
 
@@ -68,6 +69,8 @@ src/app/(conta)/   entrar, paciente, admin (Tailwind + os mesmos tokens da marca
 src/app/api/       agendamentos, disponibilidade, patients, send-message
 src/styles/marca.css   tokens de cor, fontes e tema claro/escuro (compartilhado)
 src/core/          regras da agenda e tipos (Zod); não depende do Next
+src/lib/nutricao.ts   cálculos da dieta (macros, metas, lista de compras, CSV); testes em tests/ (npm test)
+src/components/dieta/ telas do montador de dietas
 src/lib/           Google Agenda, Supabase (cliente) e servidor/ (chave de serviço, só no servidor)
 supabase/          scripts SQL
 public/marca/      logotipo e isotipo em SVG

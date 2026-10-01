@@ -8,7 +8,9 @@ import { Carregando } from "@/components/ui/Carregando";
 import { ErrorText } from "@/components/ui/ErrorText";
 import { dataHora } from "@/lib/formatar";
 
-type Refeicao = { id: string; meal_name: string; meal_time: string | null; description: string };
+type Refeicao = { id: string; meal_name: string; meal_time: string | null; description: string; notes: string | null };
+type Item = { id: string; meal_id: string; name: string; quantity_g: number; kcal: number };
+type DietaInfo = { title: string; objective: string | null; supplements: string | null; recipes: string | null };
 type Mensagem = { id: string; body: string; read: boolean; created_at: string };
 type Consulta = { id: string; starts_at: string; status: string };
 
@@ -16,6 +18,8 @@ const hora = (t: string | null) => (t ? t.slice(0, 5) : null);
 
 export default function PacientePage() {
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
+  const [itens, setItens] = useState<Item[]>([]);
+  const [dietaInfo, setDietaInfo] = useState<DietaInfo | null>(null);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [consultas, setConsultas] = useState<Consulta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +36,7 @@ export default function PacientePage() {
       // Dieta ativa mais recente e suas refeições
       const { data: dieta, error: dietaErro } = await supabase
         .from("diets")
-        .select("id")
+        .select("id, title, objective, supplements, recipes")
         .eq("patient_id", user.id)
         .eq("active", true)
         .order("created_at", { ascending: false })
@@ -41,15 +45,26 @@ export default function PacientePage() {
       if (dietaErro) throw dietaErro;
 
       if (dieta) {
+        setDietaInfo({ title: dieta.title, objective: dieta.objective, supplements: dieta.supplements, recipes: dieta.recipes });
         const { data, error: refErro } = await supabase
           .from("meals")
-          .select("id, meal_name, meal_time, description")
+          .select("id, meal_name, meal_time, description, notes")
           .eq("diet_id", dieta.id)
-          .order("meal_time", { ascending: true });
+          .order("position", { ascending: true });
         if (refErro) throw refErro;
-        setRefeicoes(data ?? []);
+        const lista = data ?? [];
+        setRefeicoes(lista);
+        if (lista.length > 0) {
+          const { data: its, error: itErro } = await supabase.from("meal_items").select("id, meal_id, name, quantity_g, kcal").in("meal_id", lista.map((m) => m.id)).order("position", { ascending: true });
+          if (itErro) throw itErro;
+          setItens((its ?? []).map((i) => ({ ...i, quantity_g: Number(i.quantity_g), kcal: Number(i.kcal) })));
+        } else {
+          setItens([]);
+        }
       } else {
         setRefeicoes([]);
+        setItens([]);
+        setDietaInfo(null);
       }
 
       const { data: msgs, error: msgErro } = await supabase
@@ -146,29 +161,60 @@ export default function PacientePage() {
       )}
 
       <section>
-        <h2 className="mb-4 text-2xl">Minha dieta</h2>
+        <h2 className="mb-1 text-2xl">Minha dieta</h2>
+        {dietaInfo?.objective && <p className="mb-4 text-sm" style={{ color: "var(--color-text-muted)" }}>{dietaInfo.objective}</p>}
         {refeicoes.length === 0 ? (
           <Card className="p-8 text-center">
             <p style={{ color: "var(--color-text-muted)" }}>Nenhuma dieta cadastrada ainda. Volte mais tarde.</p>
           </Card>
         ) : (
-          <div className="flex flex-col gap-3">
-            {refeicoes.map((r) => (
-              <Card key={r.id} className="p-5">
-                <div className="mb-1 flex items-baseline justify-between gap-3">
-                  <span className="text-lg font-semibold">{r.meal_name}</span>
-                  {r.meal_time && (
-                    <span className="text-sm font-semibold" style={{ color: "var(--color-primary)" }}>
-                      {hora(r.meal_time)}
-                    </span>
+          <div className="mt-4 flex flex-col gap-3">
+            {refeicoes.map((r) => {
+              const doDia = itens.filter((i) => i.meal_id === r.id);
+              const kcal = doDia.reduce((s, i) => s + i.kcal, 0);
+              return (
+                <Card key={r.id} className="p-5">
+                  <div className="mb-2 flex items-baseline justify-between gap-3">
+                    <span className="text-lg font-semibold">{r.meal_name}</span>
+                    {r.meal_time && (
+                      <span className="text-sm font-semibold" style={{ color: "var(--color-primary)" }}>
+                        {hora(r.meal_time)}
+                      </span>
+                    )}
+                  </div>
+                  {doDia.length > 0 ? (
+                    <ul className="flex flex-col gap-1 text-sm">
+                      {doDia.map((i) => (
+                        <li key={i.id} className="flex justify-between gap-3">
+                          <span>{i.name}</span>
+                          <span style={{ color: "var(--color-text-muted)" }}>{i.quantity_g.toLocaleString("pt-BR")} g</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    r.description && <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>{r.description}</p>
                   )}
-                </div>
-                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>{r.description}</p>
-              </Card>
-            ))}
+                  {r.notes && <p className="mt-2 text-sm italic" style={{ color: "var(--color-text-muted)" }}>{r.notes}</p>}
+                  {doDia.length > 0 && <p className="mt-3 text-xs font-semibold" style={{ color: "var(--color-text-muted)" }}>{Math.round(kcal)} kcal</p>}
+                </Card>
+              );
+            })}
           </div>
         )}
       </section>
+
+      {dietaInfo?.supplements && (
+        <section className="mt-10">
+          <h2 className="mb-4 text-2xl">Suplementos e produtos</h2>
+          <Card className="whitespace-pre-line p-5 text-sm">{dietaInfo.supplements}</Card>
+        </section>
+      )}
+      {dietaInfo?.recipes && (
+        <section className="mt-10">
+          <h2 className="mb-4 text-2xl">Receitas</h2>
+          <Card className="whitespace-pre-line p-5 text-sm">{dietaInfo.recipes}</Card>
+        </section>
+      )}
     </div>
   );
 }

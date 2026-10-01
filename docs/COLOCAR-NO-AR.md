@@ -22,6 +22,8 @@ Faça na ordem. Tempo total: cerca de 1 hora na primeira vez. Você vai precisar
 
    > A chave secreta ignora todas as regras de acesso. Nunca envie por e-mail, WhatsApp nem GitHub.
 
+> **Já tem o site no ar e só está atualizando?** Rode apenas o `06-montador-de-dietas.sql` (e, se quiser testar, o `07-alimentos-de-referencia.sql`) e faça um Redeploy. Sem o 06, a ficha do paciente mostra um aviso de erro.
+
 ## Passo 2. Criar a conta da nutricionista
 
 1. No Supabase: **Authentication → Users → Add user → Create new user**.
@@ -77,12 +79,22 @@ Sem isso, o e-mail de "esqueci minha senha" não volta para o seu site.
 
 1. Abra o site, clique em **Agendar consulta**, escolha um horário e confirme. Deve aparecer "Consulta marcada".
 2. Clique no ícone de pessoa no topo e entre com a conta da nutricionista. Você deve cair em **/admin**.
-3. **Novo paciente**: cadastre um paciente de teste (e-mail, senha provisória). Abra a ficha dele, clique em **Criar dieta** e adicione uma refeição.
+3. **Novo paciente**: cadastre um paciente de teste (e-mail, senha provisória). Abra a ficha dele, preencha **Editar dados** (peso e altura), clique em **Criar dieta**, defina o **Protocolo nutricional** e monte uma refeição com alimentos.
 4. Saia, entre com o paciente de teste e confira se aparecem a dieta e a mensagem. Se enviou uma mensagem pela ficha, ela aparece em **/paciente**.
 5. Agende com o e-mail do paciente de teste e confira, em **/admin → Consultas**, se a consulta aparece ligada a ele ("Paciente: ...").
 6. Teste **Esqueci minha senha** com o e-mail do paciente de teste.
 
-## Passo 7. Segurança (não pule)
+## Passo 7. Banco de alimentos (antes de atender pacientes de verdade)
+
+O montador de dietas calcula tudo a partir do banco de alimentos (valores por 100 g). Os 30 alimentos do script `07` são **aproximados e só servem para testar**.
+
+1. Baixe a **TACO** (Tabela Brasileira de Composição de Alimentos, NEPA/Unicamp) e abra no Excel.
+2. Deixe as colunas nesta ordem de nomes: `Alimento; Energia (kcal); Proteína (g); Lipídeos (g); Carboidrato (g); Fibra alimentar (g)` e salve como **CSV**.
+3. No painel, abra **Alimentos → Importar a TACO (CSV)** e escolha o arquivo. O sistema avisa quantos entraram, quantos já existiam e quais linhas tinham problema ("Tr" e "NA" viram zero).
+4. Depois de importar, clique em **Apagar referência** para remover os 30 aproximados.
+5. Alimentos que não estão na TACO (marcas, receitas) você cadastra à mão em **+ Novo alimento**.
+
+## Passo 8. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.
 - Se algum repositório for público, torne-o privado (GitHub → Settings → Danger Zone → Change visibility).

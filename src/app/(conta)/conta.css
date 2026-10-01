@@ -41,3 +41,15 @@
   :focus-visible { outline: 3px solid var(--color-text); outline-offset: 3px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 }
+
+/* Cores dos macronutrientes (vinho, dourado e floresta da marca; versões claras no tema escuro) */
+:root {
+  --macro-prot: #5c1e21;
+  --macro-lip: #d6ad6f;
+  --macro-carb: #0a422c;
+}
+:root[data-theme="dark"] {
+  --macro-prot: #e0a08c;
+  --macro-lip: #d6ad6f;
+  --macro-carb: #9fd0aa;
+}

@@ -10,6 +10,7 @@ import { Carregando } from "@/components/ui/Carregando";
 const LINKS = [
   { href: "/admin", rotulo: "Pacientes", ativo: (p: string) => p === "/admin" || p.startsWith("/admin/pacientes/") },
   { href: "/admin/consultas", rotulo: "Consultas", ativo: (p: string) => p.startsWith("/admin/consultas") },
+  { href: "/admin/alimentos", rotulo: "Alimentos", ativo: (p: string) => p.startsWith("/admin/alimentos") },
   { href: "/admin/pacientes/novo", rotulo: "Novo paciente", ativo: (p: string) => p === "/admin/pacientes/novo" },
 ];
 
