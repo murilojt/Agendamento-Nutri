@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Topo } from "@/components/Topo";
 
 // Textos fictícios: troque pelos dados reais da clínica.
-const nome = process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Allyus Nutrição";
+const nome = process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Ayllus Nutrição";
 
 const atendimentos = [
   { titulo: "Primeira consulta", texto: "Avaliação completa: histórico, hábitos, exames e medidas. Você sai com um plano alimentar feito para a sua rotina.", duracao: "60 min" },
@@ -39,18 +39,8 @@ export default function Inicio() {
           <div className="arco" aria-hidden="true">
             <div className="arco-disco" />
             <div className="arco-moldura">
-              <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMax slice">
-                <circle cx="200" cy="270" r="150" fill="var(--superficie)" />
-                <circle cx="200" cy="270" r="120" fill="var(--fundo-alt)" />
-                <path d="M80 270a120 120 0 0 0 240 0z" fill="var(--folha)" />
-                <circle cx="160" cy="236" r="34" fill="var(--gema)" />
-                <circle cx="238" cy="224" r="26" fill="var(--terracota)" />
-                <circle cx="226" cy="282" r="22" fill="var(--folha)" />
-                <circle cx="152" cy="294" r="18" fill="var(--broto)" />
-                <path d="M268 160c30-4 52 14 56 44-30 4-52-14-56-44z" fill="var(--folha)" />
-                <path d="M100 130c24-18 52-12 66 8-24 18-52 12-66-8z" fill="var(--gema)" />
-                <rect x="0" y="448" width="400" height="52" fill="var(--superficie)" />
-              </svg>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/marca/ayllus-isotipo.png" alt="" width={168} height={191} />
             </div>
             <div className="arco-selo a">Plano 100% personalizado</div>
             <div className="arco-selo b">Sem alimentos proibidos</div>
@@ -131,7 +121,10 @@ export default function Inicio() {
           <p>Segunda a sexta, 8h às 18h. Sábados, 8h às 12h.</p>
         </section>
       </main>
-      <footer className="rodape">© {new Date().getFullYear()} {nome}</footer>
+      <footer className="rodape">
+        <span>© {new Date().getFullYear()} {nome}</span>
+        <span className="lema">Nutrir o corpo, acolher a mente, cultivar o ser.</span>
+      </footer>
     </>
   );
 }

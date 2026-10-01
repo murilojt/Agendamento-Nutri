@@ -1,4 +1,4 @@
-# Allyus Agendamentos
+# Ayllus Agendamentos
 
 Site da clínica com agendamento online integrado ao Google Agenda da nutricionista.
 Next.js + TypeScript + Zod.
