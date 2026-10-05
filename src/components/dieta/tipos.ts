@@ -8,6 +8,7 @@ export type Paciente = {
   birth_date: string | null;
   weight_kg: number | null;
   height_cm: number | null;
+  was_seen_before?: boolean;
 };
 
 export type Dieta = {

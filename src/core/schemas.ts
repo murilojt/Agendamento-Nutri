@@ -26,6 +26,12 @@ export const novoAgendamentoSchema = z.object({
     .trim()
     .refine((v) => /^\d{10,13}$/.test(v.replace(/\D/g, "")), "Celular inválido. Use DDD + número"),
   email: z.string().trim().email("E-mail inválido"),
+  nascimento: z
+    .string()
+    .trim()
+    .refine((v) => /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)), "Informe sua data de nascimento")
+    .refine((v) => v >= "1900-01-01" && v <= new Date().toISOString().slice(0, 10), "Data de nascimento inválida"),
+  consentimento: z.literal(true, { errorMap: () => ({ message: "Aceite o uso dos dados para agendar" }) }),
 });
 export type NovoAgendamento = z.infer<typeof novoAgendamentoSchema>;
 

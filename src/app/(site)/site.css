@@ -195,6 +195,8 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .campo label { font-weight: 600; font-size: 0.95rem; }
 .campo input { background: var(--superficie); border: 1.5px solid var(--linha); border-radius: 16px; padding: 0.8rem 1rem; width: 100%; min-height: 3rem; }
 .campo input:focus { border-color: var(--folha); outline: none; box-shadow: 0 0 0 3px var(--broto); }
+.campo-consentimento label { display: flex; gap: 0.6rem; align-items: flex-start; font-weight: 400; font-size: 0.9rem; line-height: 1.4; }
+.campo-consentimento input { width: 1.25rem; min-height: 1.25rem; height: 1.25rem; margin-top: 0.1rem; flex: none; accent-color: var(--folha); }
 .erro-campo { color: var(--erro); font-size: 0.9rem; }
 .acoes { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem; }
 

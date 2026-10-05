@@ -15,8 +15,8 @@ const fmtDia = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric
 const comoData = (d: string) => new Date(`${d}T12:00:00Z`);
 const SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
-type Campos = { nome: string; sobrenome: string; celular: string; email: string };
-const vazio: Campos = { nome: "", sobrenome: "", celular: "", email: "" };
+type Campos = { nome: string; sobrenome: string; celular: string; email: string; nascimento: string };
+const vazio: Campos = { nome: "", sobrenome: "", celular: "", email: "", nascimento: "" };
 
 export function CalendarioAgendamento() {
   const [janela] = useState(() => janelaDeMeses());
@@ -28,6 +28,7 @@ export function CalendarioAgendamento() {
   const [erros, setErros] = useState<Record<string, string[]>>({});
   const [aviso, setAviso] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [consentimento, setConsentimento] = useState(false);
   const [concluido, setConcluido] = useState<AgendamentoCriado | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   // Paciente logado: preenche o formulário e manda o token, para a consulta ficar vinculada à conta dele
@@ -49,11 +50,11 @@ export function CalendarioAgendamento() {
     if (!supabaseConfigurado) return;
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) return;
-      const { data: perfil } = await supabase.from("profiles").select("role, full_name").eq("id", session.user.id).maybeSingle();
+      const { data: perfil } = await supabase.from("profiles").select("role, full_name, phone, birth_date").eq("id", session.user.id).maybeSingle();
       if (perfil?.role !== "patient") return;
       const [nome, ...resto] = (perfil.full_name ?? "").trim().split(/\s+/);
       token.current = session.access_token;
-      base.current = { ...vazio, nome: nome ?? "", sobrenome: resto.join(" "), email: session.user.email ?? "" };
+      base.current = { ...vazio, nome: nome ?? "", sobrenome: resto.join(" "), email: session.user.email ?? "", celular: perfil.phone ?? "", nascimento: perfil.birth_date ?? "" };
       setCampos(base.current);
     });
   }, []);
@@ -94,10 +95,14 @@ export function CalendarioAgendamento() {
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     if (!escolhido) return;
+    if (!consentimento) {
+      setErros({ consentimento: ["Aceite o uso dos dados para agendar"] });
+      return;
+    }
     setEnviando(true);
     setErros({});
     try {
-      const criado = await api.agendar({ inicio: escolhido.inicio, ...campos }, token.current);
+      const criado = await api.agendar({ inicio: escolhido.inicio, ...campos, consentimento: true }, token.current);
       setConcluido(criado);
       carregar();
     } catch (err) {
@@ -199,6 +204,16 @@ export function CalendarioAgendamento() {
             <Campo id="email" rotulo="E-mail" erros={erros.email}>
               <input id="email" type="email" autoComplete="email" value={campos.email} onChange={atualizar("email")} required />
             </Campo>
+            <Campo id="nascimento" rotulo="Data de nascimento" erros={erros.nascimento}>
+              <input id="nascimento" type="date" autoComplete="bday" min="1900-01-01" max={new Date().toISOString().slice(0, 10)} value={campos.nascimento} onChange={atualizar("nascimento")} required />
+            </Campo>
+            <div className="campo campo-consentimento">
+              <label htmlFor="consentimento">
+                <input id="consentimento" type="checkbox" checked={consentimento} onChange={(e) => setConsentimento(e.target.checked)} />
+                <span>Concordo em informar meus dados para agendar a consulta. Eles serão usados só para o atendimento e para identificar você no cadastro da clínica.</span>
+              </label>
+              {erros.consentimento && <p className="erro-campo" role="alert">{erros.consentimento[0]}</p>}
+            </div>
             <div className="acoes">
               <button type="button" className="botao-secundario" onClick={fecharFormulario}>Voltar</button>
               <button type="submit" className="botao" disabled={enviando}>{enviando ? "Enviando…" : "Enviar"}</button>

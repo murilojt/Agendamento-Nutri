@@ -53,7 +53,10 @@ export function useDieta(patientId: string) {
     let cancelado = false;
     async function carregar() {
       try {
-        const { data: p, error: pe } = await supabase.from("profiles").select("id, full_name, email, phone, birth_date, weight_kg, height_cm").eq("id", patientId).single();
+        const colunas = "id, full_name, email, phone, birth_date, weight_kg, height_cm";
+        let { data: p, error: pe } = await supabase.from("profiles").select(`${colunas}, was_seen_before`).eq("id", patientId).single();
+        // Sem o patch SQL 10 a coluna was_seen_before não existe: busca de novo sem ela
+        if (pe) ({ data: p, error: pe } = await supabase.from("profiles").select(colunas).eq("id", patientId).single());
         if (pe || !p) throw new Error("Paciente não encontrado ou sem permissão de acesso.");
         if (cancelado) return;
         setPaciente({ ...p, weight_kg: opt(p.weight_kg), height_cm: opt(p.height_cm) });
@@ -137,9 +140,14 @@ export function useDieta(patientId: string) {
     return true;
   };
 
-  const salvarPaciente = async (patch: Partial<Pick<Paciente, "full_name" | "phone" | "birth_date" | "weight_kg" | "height_cm">>) => {
+  const salvarPaciente = async (patch: Partial<Pick<Paciente, "full_name" | "phone" | "birth_date" | "weight_kg" | "height_cm" | "was_seen_before">>) => {
     const { error } = await supabase.from("profiles").update(patch).eq("id", patientId);
     if (error) return falhou("Não foi possível salvar os dados do paciente.", error), false;
+    if (patch.was_seen_before !== undefined) {
+      // Atualiza "1ª consulta"/"Retorno" das consultas desse paciente
+      const { data: { session } } = await supabase.auth.getSession();
+      fetch("/api/consultas/acao", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ acao: "recalcular", pacienteId: patientId, nutritionistAccessToken: session?.access_token }) }).catch(() => null);
+    }
     setPaciente((p) => (p ? { ...p, ...patch } : p));
     return true;
   };

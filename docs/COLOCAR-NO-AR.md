@@ -118,6 +118,20 @@ Alimentos que não estão em nenhuma tabela (marcas, receitas) você cadastra à
 
 No PDF da dieta, em **todas as páginas**, o texto da clínica sai no canto inferior esquerdo e a assinatura no canto inferior direito. Cada nutricionista tem a própria assinatura e os próprios dados.
 
+## Passo 8b. Agendamento ligado ao cadastro de pacientes
+
+1. No Supabase, rode **`10-pacientes-e-agendamento.sql`**.
+2. Pronto. A partir daí, o formulário de agendar também pede **celular** e **data de nascimento** (com o aceite do uso dos dados) e o site faz o resto:
+   - **E-mail igual** a um paciente e nome/nascimento compatíveis: a consulta já entra na ficha dele.
+   - **Ninguém parecido**: cria um **pré-cadastro** (paciente sem senha, ligado à nutricionista) e a consulta entra nele. Nenhum e-mail é enviado.
+   - **Dúvida** (ex.: mesmo e-mail mas nascimento diferente, ou mesmo celular com e-mail diferente): o site **não liga sozinho**. A consulta aparece em **Consultas → Revisar** com a sugestão, e você escolhe **vincular**, **cadastrar como outra pessoa** ou **está certo assim**.
+3. Em **Consultas** você vê **1ª consulta** / **Retorno**, e pode marcar **realizada** ou **faltou**. Quem tem consulta realizada passa a ser **Retorno**. Para quem já era paciente antes do site, marque **Já foi atendido(a) antes** em *Editar dados* na ficha.
+4. O título do evento no Google Agenda sai como `[1ª consulta] Nome` ou `[Retorno] Nome` (sem a etiqueta quando a consulta está para revisão).
+
+Opcional: se houver mais de uma nutricionista, defina `NUTRICIONISTA_PADRAO_ID` na Vercel com o id (UUID) de quem recebe os pré-cadastros. Sem isso vale a nutricionista mais antiga.
+
+Ainda não existe: e-mail de confirmação e convite para o paciente criar a senha (precisa de um serviço de e-mail, como Resend ou Brevo; o e-mail padrão do Supabase tem limite muito baixo). O texto de consentimento do formulário é curto e deve ser revisado junto com a política de privacidade da clínica.
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.

@@ -75,18 +75,19 @@ export function DadosPacienteModal({ aberto, aoFechar, paciente, salvar }: { abe
   const [nasc, setNasc] = useState("");
   const [peso, setPeso] = useState("");
   const [altura, setAltura] = useState("");
+  const [jaAtendido, setJaAtendido] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     if (!aberto) return;
-    setNome(paciente.full_name ?? ""); setTel(paciente.phone ?? ""); setNasc(paciente.birth_date ?? ""); setPeso(str(paciente.weight_kg)); setAltura(str(paciente.height_cm)); setErro(null);
+    setNome(paciente.full_name ?? ""); setTel(paciente.phone ?? ""); setNasc(paciente.birth_date ?? ""); setPeso(str(paciente.weight_kg)); setAltura(str(paciente.height_cm)); setJaAtendido(paciente.was_seen_before === true); setErro(null);
   }, [aberto, paciente]);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     const p = numOuNull(peso), a = numOuNull(altura);
     if (Number.isNaN(p) || Number.isNaN(a) || (p != null && (p < 20 || p > 400)) || (a != null && (a < 50 || a > 250))) return setErro("Confira o peso (kg) e a altura (cm).");
-    if (await salvar({ full_name: nome.trim() || null, phone: tel.trim() || null, birth_date: nasc || null, weight_kg: p, height_cm: a })) aoFechar();
+    if (await salvar({ full_name: nome.trim() || null, phone: tel.trim() || null, birth_date: nasc || null, weight_kg: p, height_cm: a, ...(jaAtendido !== (paciente.was_seen_before === true) ? { was_seen_before: jaAtendido } : {}) })) aoFechar();
   }
 
   return (
@@ -99,6 +100,12 @@ export function DadosPacienteModal({ aberto, aoFechar, paciente, salvar }: { abe
           <TextField label="Peso (kg)" inputMode="decimal" value={peso} onChange={(e) => setPeso(e.target.value)} />
           <TextField label="Altura (cm)" inputMode="decimal" value={altura} onChange={(e) => setAltura(e.target.value)} />
         </div>
+        {paciente.was_seen_before !== undefined && (
+          <label className="mb-4 flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={jaAtendido} onChange={(e) => setJaAtendido(e.target.checked)} />
+            Já foi atendido(a) antes (as próximas consultas aparecem como retorno)
+          </label>
+        )}
         <ErrorText>{erro}</ErrorText>
         <Button type="submit">Salvar</Button>
       </form>

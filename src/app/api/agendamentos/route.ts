@@ -4,7 +4,9 @@ import { dataLocal, horariosDoDia, isoLocal, montarDataHora, somarDias } from "@
 import { novoAgendamentoSchema, type AgendamentoCriado } from "@/core/schemas";
 import { getCalendario, HorarioOcupadoError } from "@/lib/calendario";
 import { erro, erroValidacao } from "@/lib/http";
-import { acharPaciente, gravarConsulta } from "@/lib/servidor/vinculoPaciente";
+import { tituloDoEvento } from "@/core/pacientes";
+import { getClientIp, rateLimit } from "@/lib/servidor/rateLimit";
+import { identificarPaciente, gravarConsulta } from "@/lib/servidor/vinculoPaciente";
 
 export const dynamic = "force-dynamic";
 
@@ -12,10 +14,11 @@ const OCUPADO = "Esse horário acabou de ser preenchido. Escolha outro.";
 
 // POST /api/agendamentos
 export async function POST(req: NextRequest) {
+  if (!rateLimit(`agendar:${getClientIp(req)}`, 10, 60_000)) return erro(429, "Muitas tentativas. Tente novamente em instantes.");
   const dados = novoAgendamentoSchema.safeParse(await req.json().catch(() => null));
   if (!dados.success) return erroValidacao(dados.error);
 
-  const { nome, sobrenome, celular, email } = dados.data;
+  const { nome, sobrenome, celular, email, nascimento } = dados.data;
   const inicio = new Date(dados.data.inicio);
   const fim = new Date(inicio.getTime() + CONFIG_AGENDA.duracaoMin * 60_000);
   const dia = dataLocal(inicio);
@@ -32,26 +35,29 @@ export async function POST(req: NextRequest) {
     if (!horario) return erro(400, "Esse horário não está disponível para agendamento.");
     if (!horario.livre) return erro(409, OCUPADO);
 
-    // Se for um paciente cadastrado, o evento do Google já nasce com o id dele (extendedProperties.private)
+    // Liga ao paciente cadastrado (ou cria o pré-cadastro); na dúvida, marca para revisão da nutricionista
     const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
-    const pacienteId = await acharPaciente(token, email);
+    const consentAt = new Date().toISOString();
+    const vinculo = await identificarPaciente(token, { nome, sobrenome, email, celular, nascimento }, inicio, consentAt);
+    const { pacienteId, kind } = vinculo;
 
     const googleEventId = await calendario.reservar({
       inicio,
       fim,
-      titulo: `Consulta: ${nome} ${sobrenome}`,
+      titulo: tituloDoEvento(nome, sobrenome, kind),
       descricao: [
         `Paciente: ${nome} ${sobrenome}`,
         `Celular: ${celular}`,
         `E-mail: ${email}`,
-        pacienteId ? "Paciente cadastrado no sistema." : "",
+        kind === "first" ? "1ª consulta." : kind === "return" ? "Retorno." : "",
+        vinculo.revisar ? "ATENÇÃO: confira o cadastro deste paciente no painel (revisar)." : "",
         "",
         "Agendado pelo site.",
       ].join("\n"),
-      dados: { nome, sobrenome, celular, email, ...(pacienteId ? { pacienteId } : {}) },
+      dados: { nome, sobrenome, celular, email, ...(pacienteId ? { pacienteId } : {}), ...(kind ? { tipo: kind } : {}) },
     });
 
-    await gravarConsulta({ googleEventId, pacienteId, inicio, fim, nome: `${nome} ${sobrenome}`, email, celular });
+    await gravarConsulta({ googleEventId, vinculo, inicio, fim, nome: `${nome} ${sobrenome}`, email, celular, nascimento, consentAt });
 
     return NextResponse.json<AgendamentoCriado>(
       { inicio: isoLocal(inicio), fim: isoLocal(fim), nome },
