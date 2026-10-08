@@ -72,6 +72,7 @@ export default function PacientePage() {
       dieta,
       refeicoes: d.refeicoes,
       itens: d.itens,
+      substitutos: d.substitutos,
       opcoes,
     });
   }

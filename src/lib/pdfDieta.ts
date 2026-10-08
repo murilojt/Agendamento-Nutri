@@ -10,6 +10,8 @@ export type OpcoesPdf = {
   macrosPorRefeicao: boolean;
   /** kcal ao lado de cada alimento */
   kcalPorAlimento: boolean;
+  /** opções que podem ser comidas no lugar de cada alimento */
+  substitutos: boolean;
   /** calorias do dia e distribuição dos macros */
   resumoDoDia: boolean;
   /** tabela prescrito × teórico (visão clínica) */
@@ -23,6 +25,7 @@ export type OpcoesPdf = {
 export const OPCOES_PADRAO: OpcoesPdf = {
   macrosPorRefeicao: true,
   kcalPorAlimento: false,
+  substitutos: true,
   resumoDoDia: true,
   comparacaoComMetas: false,
   listaDeCompras: false,
@@ -37,7 +40,7 @@ export type RefeicaoPdf = {
   nome: string;
   horario: string | null; // "07:30"
   notas: string | null;
-  itens: { nome: string; gramas: number; kcal: number }[];
+  itens: { nome: string; gramas: number; kcal: number; substitutos: { nome: string; gramas: number }[] }[];
   total: Macros;
 };
 
@@ -68,6 +71,8 @@ export type EntradaPdf = {
   dieta: Protocolo & { title: string; objective: string | null; supplements: string | null; recipes: string | null };
   refeicoes: { id: string; meal_name: string; meal_time: string | null; notes: string | null; position: number }[];
   itens: ItemRefeicao[];
+  /** Substitutos de cada alimento (item_id = id do alimento da dieta). Opcional: sem eles o PDF sai igual ao de antes. */
+  substitutos?: { item_id: string; name: string; quantity_g: number; position: number }[];
   opcoes: OpcoesPdf;
   agora: Date;
   logos: DadosPdf["logos"];
@@ -93,7 +98,14 @@ export function montarDadosPdf(e: EntradaPdf): DadosPdf {
       nome: r.meal_name,
       horario: r.meal_time ? r.meal_time.slice(0, 5) : null,
       notas: r.notes?.trim() || null,
-      itens: itens.map((i) => ({ nome: i.name, gramas: i.quantity_g, kcal: i.kcal })),
+      itens: itens.map((i) => ({
+        nome: i.name,
+        gramas: i.quantity_g,
+        kcal: i.kcal,
+        substitutos: e.opcoes.substitutos
+          ? (e.substitutos ?? []).filter((s) => s.item_id === i.id).sort((a, b) => a.position - b.position).map((s) => ({ nome: s.name, gramas: s.quantity_g }))
+          : [],
+      })),
       total: somar(itens),
     };
   });

@@ -10,6 +10,7 @@ import { dataHora } from "@/lib/formatar";
 
 type Refeicao = { id: string; meal_name: string; meal_time: string | null; description: string; notes: string | null };
 type Item = { id: string; meal_id: string; name: string; quantity_g: number; kcal: number };
+type Substituto = { item_id: string; name: string; quantity_g: number };
 type DietaInfo = { title: string; objective: string | null; supplements: string | null; recipes: string | null };
 type Mensagem = { id: string; body: string; read: boolean; created_at: string };
 type Consulta = { id: string; starts_at: string; status: string };
@@ -19,6 +20,7 @@ const hora = (t: string | null) => (t ? t.slice(0, 5) : null);
 export default function PacientePage() {
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
   const [itens, setItens] = useState<Item[]>([]);
+  const [substitutos, setSubstitutos] = useState<Substituto[]>([]);
   const [dietaInfo, setDietaInfo] = useState<DietaInfo | null>(null);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [consultas, setConsultas] = useState<Consulta[]>([]);
@@ -57,13 +59,20 @@ export default function PacientePage() {
         if (lista.length > 0) {
           const { data: its, error: itErro } = await supabase.from("meal_items").select("id, meal_id, name, quantity_g, kcal").in("meal_id", lista.map((m) => m.id)).order("position", { ascending: true });
           if (itErro) throw itErro;
-          setItens((its ?? []).map((i) => ({ ...i, quantity_g: Number(i.quantity_g), kcal: Number(i.kcal) })));
+          const lidos = (its ?? []).map((i) => ({ ...i, quantity_g: Number(i.quantity_g), kcal: Number(i.kcal) }));
+          setItens(lidos);
+          // Substitutos (patch SQL 11): se a tabela não existir, só não mostra
+          const { data: subs } = lidos.length
+            ? await supabase.from("meal_item_substitutes").select("item_id, name, quantity_g").in("item_id", lidos.map((i) => i.id)).order("position", { ascending: true })
+            : { data: null };
+          setSubstitutos((subs ?? []).map((s) => ({ ...s, quantity_g: Number(s.quantity_g) })));
         } else {
           setItens([]);
         }
       } else {
         setRefeicoes([]);
         setItens([]);
+        setSubstitutos([]);
         setDietaInfo(null);
       }
 
@@ -186,8 +195,15 @@ export default function PacientePage() {
                     <ul className="flex flex-col gap-1 text-sm">
                       {doDia.map((i) => (
                         <li key={i.id} className="flex justify-between gap-3">
-                          <span>{i.name}</span>
-                          <span style={{ color: "var(--color-text-muted)" }}>{i.quantity_g.toLocaleString("pt-BR")} g</span>
+                          <span>
+                            {i.name}
+                            {substitutos.some((s) => s.item_id === i.id) && (
+                              <span className="block text-xs italic" style={{ color: "var(--color-text-muted)" }}>
+                                Pode trocar por: {substitutos.filter((s) => s.item_id === i.id).map((s) => `${s.quantity_g.toLocaleString("pt-BR")} g ${s.name}`).join(" · ")}
+                              </span>
+                            )}
+                          </span>
+                          <span className="shrink-0" style={{ color: "var(--color-text-muted)" }}>{i.quantity_g.toLocaleString("pt-BR")} g</span>
                         </li>
                       ))}
                     </ul>

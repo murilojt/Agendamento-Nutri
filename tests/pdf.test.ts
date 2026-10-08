@@ -97,3 +97,26 @@ test("rodapé do PDF: 4 linhas da clínica à esquerda e, se houver, a assinatur
   // imagem inválida (WebP) é ignorada em vez de quebrar o PDF
   assert.equal(montarDadosPdf(entrada({ rodape: { ...comPadrao(null), signature_data: "data:image/webp;base64,AAAA" } })).rodape.assinatura, null);
 });
+
+test("PDF: substitutos entram abaixo de cada alimento e podem ser desligados", () => {
+  const base = {
+    clinica: "Ayllus", nutricionista: null,
+    paciente: { full_name: "Ana", birth_date: null, weight_kg: null, height_cm: null },
+    dieta: { title: "Plano", objective: null, supplements: null, recipes: null, target_kcal: null, target_protein_gkg: null, target_fat_gkg: null, target_carb_gkg: null },
+    refeicoes: [{ id: "r1", meal_name: "Café", meal_time: null, notes: null, position: 0 }],
+    itens: [{ id: "i1", meal_id: "r1", food_id: null, name: "Pão", quantity_g: 50, kcal: 130, protein_g: 4, fat_g: 1, carb_g: 25, fiber_g: 1, position: 0 }],
+    substitutos: [
+      { item_id: "i1", name: "Tapioca", quantity_g: 40, position: 1 },
+      { item_id: "i1", name: "Cuscuz", quantity_g: 90, position: 0 },
+      { item_id: "outro", name: "Banana", quantity_g: 100, position: 0 },
+    ],
+    agora: new Date(2026, 9, 5), logos: { isotipo: null, logotipo: null },
+    rodape: { nome: "", crn: "", telefone: "", email: "", assinatura: null },
+  } as unknown as EntradaPdf;
+  const com = montarDadosPdf({ ...base, opcoes: { ...OPCOES_PADRAO, substitutos: true } });
+  assert.deepEqual(com.refeicoes[0].itens[0].substitutos, [{ nome: "Cuscuz", gramas: 90 }, { nome: "Tapioca", gramas: 40 }]);
+  const sem = montarDadosPdf({ ...base, opcoes: { ...OPCOES_PADRAO, substitutos: false } });
+  assert.deepEqual(sem.refeicoes[0].itens[0].substitutos, []);
+  const semDados = montarDadosPdf({ ...base, substitutos: undefined, opcoes: OPCOES_PADRAO });
+  assert.deepEqual(semDados.refeicoes[0].itens[0].substitutos, []);
+});

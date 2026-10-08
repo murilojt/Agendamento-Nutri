@@ -67,6 +67,8 @@ const s = StyleSheet.create({
   colunaNome: { flexGrow: 1, flexShrink: 1, flexBasis: 0, paddingRight: 10 },
   itemQtd: { fontWeight: 700, color: FLORESTA, width: 52, textAlign: "right" },
   itemKcal: { color: MUDO, width: 52, textAlign: "right", fontSize: 8.5 },
+  substitutos: { fontSize: 8.5, color: MUDO, paddingHorizontal: 10, paddingBottom: 5, marginTop: -1.5, lineHeight: 1.35 },
+  substitutosRotulo: { fontFamily: "Playfair", fontWeight: 500, fontStyle: "italic", color: FLORESTA },
   notas: { fontFamily: "Playfair", fontWeight: 500, fontSize: 9.5, fontStyle: "italic", color: MUDO, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: "#fffaf3" },
   vazio: { fontSize: 9, color: MUDO, padding: 10 },
   tabelaCab: { flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: DOURADO },
@@ -109,10 +111,18 @@ function Refeicao({ r, d }: { r: RefeicaoPdf; d: DadosPdf }) {
       </View>
       {r.itens.length === 0 && <Text style={s.vazio}>Nenhum alimento definido para esta refeição.</Text>}
       {r.itens.map((i, k) => (
-        <View key={k} style={s.itemLinha} wrap={false}>
-          <View style={s.colunaNome}><Text>{i.nome}</Text></View>
-          {d.opcoes.kcalPorAlimento && <Text style={s.itemKcal}>{Math.round(i.kcal)} kcal</Text>}
-          <Text style={s.itemQtd}>{gramas(i.gramas)}</Text>
+        <View key={k} wrap={false}>
+          <View style={s.itemLinha}>
+            <View style={s.colunaNome}><Text>{i.nome}</Text></View>
+            {d.opcoes.kcalPorAlimento && <Text style={s.itemKcal}>{Math.round(i.kcal)} kcal</Text>}
+            <Text style={s.itemQtd}>{gramas(i.gramas)}</Text>
+          </View>
+          {i.substitutos.length > 0 && (
+            <Text style={s.substitutos}>
+              <Text style={s.substitutosRotulo}>Pode trocar por: </Text>
+              {i.substitutos.map((x) => `${gramas(x.gramas)} ${x.nome}`).join("  ·  ")}
+            </Text>
+          )}
         </View>
       ))}
       {r.notas && <Text style={s.notas}>{r.notas}</Text>}
