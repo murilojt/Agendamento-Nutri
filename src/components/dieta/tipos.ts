@@ -25,6 +25,8 @@ export type Dieta = {
 
 export type Refeicao = { id: string; diet_id: string; meal_name: string; meal_time: string | null; notes: string | null; position: number };
 
+export type Substituto = Macros & { id: string; item_id: string; food_id: string | null; name: string; quantity_g: number; position: number };
+
 export type Favorita = { id: string; name: string; meal_time: string | null; items: ItemFavorito[] };
 export type ItemFavorito = Macros & { food_id: string | null; name: string; quantity_g: number };
 

@@ -18,6 +18,8 @@ import { supabase } from "@/lib/supabase";
 import type { OpcoesPdf } from "@/lib/pdfDieta.ts";
 import { carregarConfigRodape } from "@/lib/configuracoesNutri";
 import { AnamneseModal, DadosPacienteModal, FavoritasModal, ListaComprasModal, ProtocoloModal, TextoModal } from "@/components/dieta/Formularios";
+import { SubstitutosModal } from "@/components/dieta/SubstitutosModal";
+import type { ItemRefeicao } from "@/lib/nutricao";
 import { IcoMais } from "@/components/dieta/Icones";
 
 type Janela = "pdf" | "protocolo" | "dados" | "anamnese" | "favoritas" | "suplementos" | "receitas" | "compras" | null;
@@ -39,6 +41,7 @@ export default function PacientePage() {
   const [janela, setJanela] = useState<Janela>(null);
   const [expandidas, setExpandidas] = useState<Set<string>>(new Set());
   const [arrastando, setArrastando] = useState<string | null>(null);
+  const [itemSubstitutos, setItemSubstitutos] = useState<string | null>(null);
   const fechar = () => setJanela(null);
 
   if (d.carregando) return <Carregando />;
@@ -170,6 +173,8 @@ export default function PacientePage() {
                   adicionarAlimento={(a) => d.adicionarAlimento(r.id, a)}
                   mudarQuantidade={d.mudarQuantidade}
                   removerAlimento={d.removerAlimento}
+                  contagemSubstitutos={(itemId) => d.substitutos.filter((s) => s.item_id === itemId).length}
+                  abrirSubstitutos={(i: ItemRefeicao) => setItemSubstitutos(i.id)}
                 />
               ))}
             </ul>
@@ -213,6 +218,17 @@ export default function PacientePage() {
 
       <MensagensEConsultas patientId={id} />
 
+      <SubstitutosModal
+        item={d.itens.find((i) => i.id === itemSubstitutos) ?? null}
+        substitutos={d.substitutos}
+        alimentos={d.alimentos}
+        uso={d.uso}
+        disponivel={d.substitutosOk}
+        aoFechar={() => setItemSubstitutos(null)}
+        adicionar={d.adicionarSubstituto}
+        mudarQuantidade={d.mudarQuantidadeSubstituto}
+        remover={d.removerSubstituto}
+      />
       <ExportarPdfModal aberto={janela === "pdf"} aoFechar={fechar} gerar={gerarPdf} semRefeicoes={d.refeicoes.length === 0} />
       <DadosPacienteModal aberto={janela === "dados"} aoFechar={fechar} paciente={paciente} salvar={d.salvarPaciente} />
       <AnamneseModal aberto={janela === "anamnese"} aoFechar={fechar} ler={d.lerAnamnese} salvar={d.salvarAnamnese} />

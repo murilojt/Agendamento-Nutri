@@ -3,14 +3,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { macrosDaPorcao, reescalar, somar, type Alimento, type ItemRefeicao, type Macros } from "@/lib/nutricao";
-import type { Anamnese, Dieta, Favorita, ItemFavorito, Paciente, Refeicao } from "./tipos";
+import type { Anamnese, Dieta, Favorita, ItemFavorito, Paciente, Refeicao, Substituto } from "./tipos";
 
+const CAMPOS_SUBST = "id, item_id, food_id, name, quantity_g, kcal, protein_g, fat_g, carb_g, fiber_g, position";
 const CAMPOS_ITEM = "id, meal_id, food_id, name, quantity_g, kcal, protein_g, fat_g, carb_g, fiber_g, position";
 const num = (v: unknown) => (v == null ? 0 : Number(v));
 
 /** Normaliza números que o PostgREST pode devolver como texto (colunas numeric). */
 const item = (r: Record<string, unknown>): ItemRefeicao => ({
   id: String(r.id), meal_id: String(r.meal_id), food_id: (r.food_id as string | null) ?? null, name: String(r.name),
+  quantity_g: num(r.quantity_g), kcal: num(r.kcal), protein_g: num(r.protein_g), fat_g: num(r.fat_g), carb_g: num(r.carb_g),
+  fiber_g: num(r.fiber_g), position: num(r.position),
+});
+const substituto = (r: Record<string, unknown>): Substituto => ({
+  id: String(r.id), item_id: String(r.item_id), food_id: (r.food_id as string | null) ?? null, name: String(r.name),
   quantity_g: num(r.quantity_g), kcal: num(r.kcal), protein_g: num(r.protein_g), fat_g: num(r.fat_g), carb_g: num(r.carb_g),
   fiber_g: num(r.fiber_g), position: num(r.position),
 });
@@ -26,6 +32,9 @@ export function useDieta(patientId: string) {
   const [dieta, setDieta] = useState<Dieta | null>(null);
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
   const [itens, setItens] = useState<ItemRefeicao[]>([]);
+  const [substitutos, setSubstitutos] = useState<Substituto[]>([]);
+  // false quando o patch SQL 11 ainda não foi aplicado
+  const [substitutosOk, setSubstitutosOk] = useState(true);
   const [alimentos, setAlimentos] = useState<Alimento[]>([]);
   const [uso, setUso] = useState<Map<string, number>>(new Map());
   const [favoritas, setFavoritas] = useState<Favorita[]>([]);
@@ -46,7 +55,14 @@ export function useDieta(patientId: string) {
     if (lista.length === 0) return setItens([]);
     const { data: its, error: e2 } = await supabase.from("meal_items").select(CAMPOS_ITEM).in("meal_id", lista.map((m) => m.id)).order("position", { ascending: true });
     if (e2) throw e2;
-    setItens((its ?? []).map(item));
+    const lidos = (its ?? []).map(item);
+    setItens(lidos);
+
+    // Substitutos: se a tabela não existir (patch SQL 11 pendente), o resto da tela continua funcionando
+    if (lidos.length === 0) return setSubstitutos([]);
+    const { data: subs, error: e3 } = await supabase.from("meal_item_substitutes").select(CAMPOS_SUBST).in("item_id", lidos.map((i) => i.id)).order("position", { ascending: true });
+    setSubstitutosOk(!e3);
+    setSubstitutos(e3 ? [] : (subs ?? []).map(substituto));
   }, []);
 
   useEffect(() => {
@@ -249,6 +265,36 @@ export function useDieta(patientId: string) {
     setItens((x) => x.filter((i) => i.id !== itemId));
   };
 
+  /* ---------- substitutos ---------- */
+  const adicionarSubstituto = async (itemId: string, a: Alimento, gramas: number) => {
+    const m = macrosDaPorcao(a, gramas);
+    const pos = substitutos.filter((s) => s.item_id === itemId).length;
+    const { data, error } = await supabase.from("meal_item_substitutes")
+      .insert({ item_id: itemId, food_id: a.id, name: a.name, quantity_g: gramas, ...m, position: pos }).select(CAMPOS_SUBST).single();
+    if (error || !data) return falhou("Não foi possível salvar o substituto. Confirme que o patch SQL 11 foi aplicado no Supabase.", error), false;
+    setSubstitutos((x) => [...x, substituto(data)]);
+    return true;
+  };
+
+  const mudarQuantidadeSubstituto = async (id: string, gramas: number) => {
+    const atual = substitutos.find((s) => s.id === id);
+    if (!atual || !(gramas > 0) || gramas === atual.quantity_g) return;
+    const novos = { quantity_g: gramas, ...reescalar(atual, gramas) };
+    const anterior = substitutos;
+    setSubstitutos((x) => x.map((s) => (s.id === id ? { ...s, ...novos } : s)));
+    const { error } = await supabase.from("meal_item_substitutes").update(novos).eq("id", id);
+    if (error) {
+      setSubstitutos(anterior);
+      falhou("Não foi possível salvar a quantidade do substituto.", error);
+    }
+  };
+
+  const removerSubstituto = async (id: string) => {
+    const { error } = await supabase.from("meal_item_substitutes").delete().eq("id", id);
+    if (error) return falhou("Não foi possível remover o substituto.", error);
+    setSubstitutos((x) => x.filter((s) => s.id !== id));
+  };
+
   /* ---------- favoritas ---------- */
   const favoritar = async (mealId: string) => {
     const m = refeicoes.find((r) => r.id === mealId);
@@ -290,8 +336,8 @@ export function useDieta(patientId: string) {
   };
 
   return {
-    paciente, dieta, refeicoes, itens, itensPorRefeicao, alimentos, uso, favoritas, totalDia, massaTotal, carregando, erroGeral, aviso, limparAviso: () => setAviso(null),
+    paciente, dieta, refeicoes, itens, itensPorRefeicao, substitutos, substitutosOk, alimentos, uso, favoritas, totalDia, massaTotal, carregando, erroGeral, aviso, limparAviso: () => setAviso(null),
     criarDieta, salvarDieta, salvarPaciente, novaRefeicao, atualizarRefeicao, removerRefeicao, reordenar, ordenarPorHorario, duplicarRefeicao,
-    adicionarAlimento, mudarQuantidade, removerAlimento, favoritar, usarFavorita, apagarFavorita, lerAnamnese, salvarAnamnese,
+    adicionarAlimento, mudarQuantidade, removerAlimento, adicionarSubstituto, mudarQuantidadeSubstituto, removerSubstituto, favoritar, usarFavorita, apagarFavorita, lerAnamnese, salvarAnamnese,
   };
 }

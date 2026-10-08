@@ -132,6 +132,11 @@ Opcional: se houver mais de uma nutricionista, defina `NUTRICIONISTA_PADRAO_ID` 
 
 Ainda não existe: e-mail de confirmação e convite para o paciente criar a senha (precisa de um serviço de e-mail, como Resend ou Brevo; o e-mail padrão do Supabase tem limite muito baixo). O texto de consentimento do formulário é curto e deve ser revisado junto com a política de privacidade da clínica.
 
+## Passo 8c. Substitutos na dieta
+
+1. No Supabase, rode **`11-substitutos-da-dieta.sql`**.
+2. Na ficha do paciente, expanda uma refeição e clique em **Substitutos** ao lado de um alimento. Busque o alimento substituto: a quantidade já vem calculada para ter as **mesmas calorias** do alimento da dieta, e você pode ajustar. Um selo mostra "equivalente" (até 5% de diferença) ou a diferença em kcal.
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.

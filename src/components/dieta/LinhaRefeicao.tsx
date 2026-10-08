@@ -23,6 +23,8 @@ type Props = {
   adicionarAlimento: (a: Alimento) => void;
   mudarQuantidade: (itemId: string, g: number) => void;
   removerAlimento: (itemId: string) => void;
+  contagemSubstitutos: (itemId: string) => number;
+  abrirSubstitutos: (item: ItemRefeicao) => void;
 };
 
 const botaoIcone = "grid h-9 w-9 place-items-center rounded-xl border";
@@ -140,6 +142,15 @@ export function LinhaRefeicao(p: Props) {
                   <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                     P {g1(i.protein_g)} · L {g1(i.fat_g)} · C {g1(i.carb_g)} · {kcal0(i.kcal)}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => p.abrirSubstitutos(i)}
+                    className="whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold"
+                    style={borda}
+                    aria-label={`Substitutos de ${i.name}`}
+                  >
+                    Substitutos{p.contagemSubstitutos(i.id) > 0 ? ` (${p.contagemSubstitutos(i.id)})` : ""}
+                  </button>
                   <button type="button" onClick={() => p.removerAlimento(i.id)} aria-label={`Remover ${i.name}`} className="rounded-lg p-1.5" style={{ color: "var(--color-danger)" }}>
                     <IcoLixeira className="h-4 w-4" />
                   </button>

@@ -35,6 +35,12 @@ export function macrosDaPorcao(alimento: Macros, gramas: number): Macros {
   };
 }
 
+/** Gramas de um alimento (valores por 100 g) que dão as mesmas calorias que `kcalAlvo`, arredondadas para 5 g. Null se o alimento não tem calorias. */
+export function gramasParaMesmasKcal(alimento: Pick<Macros, "kcal">, kcalAlvo: number): number | null {
+  if (!(alimento.kcal > 0) || !(kcalAlvo > 0)) return null;
+  return Math.max(5, Math.round(((kcalAlvo / alimento.kcal) * 100) / 5) * 5);
+}
+
 /** Muda a quantidade de um item já salvo, mantendo a proporção (sem precisar do banco de alimentos). */
 export function reescalar(item: Macros & { quantity_g: number }, novaQuantidade: number): Macros {
   if (item.quantity_g <= 0) return { ...ZERO };
