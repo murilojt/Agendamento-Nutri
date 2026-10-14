@@ -143,8 +143,6 @@ Ainda não existe: e-mail de confirmação e convite para o paciente criar a sen
 2. Na ficha do paciente, clique em **Evolução** e registre peso, gordura corporal, cintura e quadril a cada consulta. O gráfico, a variação desde a primeira medição e o histórico aparecem ali e na área do paciente (só leitura).
 3. Ao registrar um peso novo (o mais recente), o peso do cadastro é atualizado e passa a valer nas metas em g/kg da dieta. Medições antigas lançadas depois não mexem no peso atual.
 
-Ainda não há fotos de evolução (exigiria armazenamento de arquivos com cuidado extra de privacidade).
-
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.
