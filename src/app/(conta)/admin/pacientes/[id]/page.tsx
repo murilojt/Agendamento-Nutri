@@ -20,9 +20,11 @@ import { carregarConfigRodape } from "@/lib/configuracoesNutri";
 import { AnamneseModal, DadosPacienteModal, FavoritasModal, ListaComprasModal, ProtocoloModal, TextoModal } from "@/components/dieta/Formularios";
 import { SubstitutosModal } from "@/components/dieta/SubstitutosModal";
 import type { ItemRefeicao } from "@/lib/nutricao";
+import { EvolucaoPainel } from "@/components/dieta/EvolucaoPainel";
+import { Modal } from "@/components/dieta/Modal";
 import { IcoMais } from "@/components/dieta/Icones";
 
-type Janela = "pdf" | "protocolo" | "dados" | "anamnese" | "favoritas" | "suplementos" | "receitas" | "compras" | null;
+type Janela = "evolucao" | "pdf" | "protocolo" | "dados" | "anamnese" | "favoritas" | "suplementos" | "receitas" | "compras" | null;
 
 const idade = (nasc: string | null) => {
   if (!nasc) return null;
@@ -113,10 +115,11 @@ export default function PacientePage() {
           <Link href="/admin" className="text-sm font-semibold underline">Voltar para pacientes</Link>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-5">
+        <div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-6">
           <button type="button" disabled={!dieta} onClick={() => setJanela("protocolo")} className={`${botaoSecundario} disabled:opacity-50`} style={borda}>Protocolo nutricional</button>
           <button type="button" onClick={() => setJanela("anamnese")} className={botaoSecundario} style={borda}>Ver anamnese</button>
           <button type="button" onClick={() => setJanela("favoritas")} className={botaoSecundario} style={borda}>Refeições favoritas</button>
+          <button type="button" onClick={() => setJanela("evolucao")} className={botaoSecundario} style={borda}>Evolução</button>
           <a href="#mensagens" className={`${botaoSecundario} text-center`} style={borda}>Consultas e mensagens</a>
           <button
             type="button"
@@ -231,6 +234,9 @@ export default function PacientePage() {
         remover={d.removerSubstituto}
       />
       <ExportarPdfModal aberto={janela === "pdf"} aoFechar={fechar} gerar={gerarPdf} semRefeicoes={d.refeicoes.length === 0} />
+      <Modal aberto={janela === "evolucao"} aoFechar={fechar} titulo="Evolução do paciente" larga>
+        <EvolucaoPainel patientId={paciente.id} editavel alturaCm={paciente.height_cm} aoAtualizarPeso={(kg) => void d.salvarPaciente({ weight_kg: kg })} />
+      </Modal>
       <DadosPacienteModal aberto={janela === "dados"} aoFechar={fechar} paciente={paciente} salvar={d.salvarPaciente} />
       <AnamneseModal aberto={janela === "anamnese"} aoFechar={fechar} ler={d.lerAnamnese} salvar={d.salvarAnamnese} />
       <FavoritasModal aberto={janela === "favoritas"} aoFechar={fechar} favoritas={d.favoritas} usar={dieta ? d.usarFavorita : async () => {}} apagar={d.apagarFavorita} />

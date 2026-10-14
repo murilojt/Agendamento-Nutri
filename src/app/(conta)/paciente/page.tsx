@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Carregando } from "@/components/ui/Carregando";
 import { ErrorText } from "@/components/ui/ErrorText";
 import { dataHora } from "@/lib/formatar";
+import { EvolucaoPainel } from "@/components/dieta/EvolucaoPainel";
 
 type Refeicao = { id: string; meal_name: string; meal_time: string | null; description: string; notes: string | null };
 type Item = { id: string; meal_id: string; name: string; quantity_g: number; kcal: number };
@@ -20,6 +21,7 @@ const hora = (t: string | null) => (t ? t.slice(0, 5) : null);
 export default function PacientePage() {
   const [refeicoes, setRefeicoes] = useState<Refeicao[]>([]);
   const [itens, setItens] = useState<Item[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
   const [substitutos, setSubstitutos] = useState<Substituto[]>([]);
   const [dietaInfo, setDietaInfo] = useState<DietaInfo | null>(null);
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
@@ -34,6 +36,7 @@ export default function PacientePage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
+      setUserId(user.id);
 
       // Dieta ativa mais recente e suas refeições
       const { data: dieta, error: dietaErro } = await supabase
@@ -168,6 +171,11 @@ export default function PacientePage() {
           </div>
         </section>
       )}
+
+      <section className="mb-10">
+        <h2 className="mb-4 text-2xl">Minha evolução</h2>
+        <Card className="p-5">{userId && <EvolucaoPainel patientId={userId} editavel={false} />}</Card>
+      </section>
 
       <section>
         <h2 className="mb-1 text-2xl">Minha dieta</h2>
