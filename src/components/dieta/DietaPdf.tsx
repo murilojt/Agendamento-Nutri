@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { Document, Font, Image, Page, Path, Polygon, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { Circle, Document, Font, Image, Line, Page, Path, Polygon, Polyline, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import type { DadosPdf, LogoVetorial, RefeicaoPdf } from "@/lib/pdfDieta.ts";
 import type { LinhaCompra as LinhaCompraTipo } from "@/lib/nutricao.ts";
 
@@ -69,6 +69,10 @@ const s = StyleSheet.create({
   itemKcal: { color: MUDO, width: 52, textAlign: "right", fontSize: 8.5 },
   substitutos: { fontSize: 8.5, color: MUDO, paddingHorizontal: 10, paddingBottom: 5, marginTop: -1.5, lineHeight: 1.35 },
   substitutosRotulo: { fontFamily: "Playfair", fontWeight: 500, fontStyle: "italic", color: FLORESTA },
+  evolucaoResumo: { flexDirection: "row", alignItems: "baseline", marginBottom: 4 },
+  evolucaoVariacao: { fontSize: 9, color: MUDO, marginLeft: 10 },
+  evolucaoEixo: { flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 4 },
+  evolucaoRotulo: { fontSize: 8, color: MUDO },
   notas: { fontFamily: "Playfair", fontWeight: 500, fontSize: 9.5, fontStyle: "italic", color: MUDO, paddingHorizontal: 10, paddingVertical: 6, backgroundColor: "#fffaf3" },
   vazio: { fontSize: 9, color: MUDO, padding: 10 },
   tabelaCab: { flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: DOURADO },
@@ -140,6 +144,47 @@ function LinhaCompra({ c }: { c: LinhaCompraTipo }) {
   );
 }
 
+const dataCurta = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("pt-BR");
+
+/** Gráfico de linha do peso (desenhado em SVG, dentro do PDF). */
+function EvolucaoDoPeso({ evolucao }: { evolucao: NonNullable<DadosPdf["evolucao"]> }) {
+  const { pontos, variacao } = evolucao;
+  const L = 500, A = 130, ME = 34, MD = 10, MT = 10, MB = 22;
+  const valores = pontos.map((p) => p.valor);
+  const folga = Math.max((Math.max(...valores) - Math.min(...valores)) * 0.15, 0.5);
+  const min = Math.min(...valores) - folga, max = Math.max(...valores) + folga;
+  const t = (d: string) => new Date(`${d}T12:00:00`).getTime();
+  const t0 = t(pontos[0].data), t1 = t(pontos[pontos.length - 1].data);
+  const x = (d: string) => (t1 === t0 ? (ME + L - MD) / 2 : ME + ((t(d) - t0) / (t1 - t0)) * (L - ME - MD));
+  const y = (v: number) => MT + (1 - (v - min) / (max - min)) * (A - MT - MB);
+  const guias = [min + folga, (min + max) / 2, max - folga];
+  const ultimo = pontos[pontos.length - 1].valor;
+  return (
+    <View style={s.secao} wrap={false}>
+      <Text style={s.secaoTitulo}>Evolução do peso</Text>
+      <View style={s.evolucaoResumo}>
+        <Text style={s.resumoValor}>{num(ultimo, 1)} kg</Text>
+        <Text style={s.evolucaoVariacao}>
+          {variacao > 0 ? "+" : ""}{num(variacao, 1)} kg desde {dataCurta(pontos[0].data)}
+        </Text>
+      </View>
+      <Svg viewBox={`0 0 ${L} ${A}`} style={{ width: "100%", height: 150 }}>
+        {guias.map((g, i) => (
+          <Line key={i} x1={ME} x2={L - MD} y1={y(g)} y2={y(g)} stroke={LINHA} strokeWidth={0.75} />
+        ))}
+        <Polyline points={pontos.map((p) => `${x(p.data)},${y(p.valor)}`).join(" ")} stroke={FLORESTA} strokeWidth={2} fill="none" />
+        {pontos.map((p, i) => (
+          <Circle key={i} cx={x(p.data)} cy={y(p.valor)} r={3} fill={FLORESTA} />
+        ))}
+      </Svg>
+      <View style={s.evolucaoEixo}>
+        <Text style={s.evolucaoRotulo}>{dataCurta(pontos[0].data)}  ·  {num(pontos[0].valor, 1)} kg</Text>
+        <Text style={s.evolucaoRotulo}>{dataCurta(pontos[pontos.length - 1].data)}  ·  {num(ultimo, 1)} kg</Text>
+      </View>
+    </View>
+  );
+}
+
 function ResumoDoDia({ d }: { d: DadosPdf }) {
   const x = d.distribuicao;
   const caixa = (valor: string, nome: string, cor: string, ultimo = false) => (
@@ -206,6 +251,7 @@ export function DietaPdf({ d }: { d: DadosPdf }) {
         )}
 
         {d.opcoes.resumoDoDia && d.refeicoes.length > 0 && <ResumoDoDia d={d} />}
+        {d.evolucao && <EvolucaoDoPeso evolucao={d.evolucao} />}
 
         <View style={s.secao}>
           <Text style={s.secaoTitulo} minPresenceAhead={80}>Rotina alimentar</Text>

@@ -65,6 +65,8 @@ export default function PacientePage() {
     } catch {
       // sem o nome, o PDF sai sem a linha "Elaborado por"
     }
+    // Medições de peso para o gráfico de evolução (sem o patch SQL 12, o PDF sai sem o gráfico)
+    const { data: medicoes } = await supabase.from("patient_measurements").select("id, measured_on, weight_kg, body_fat_pct, waist_cm, hip_cm, notes").eq("patient_id", paciente.id).order("measured_on", { ascending: true });
     const { config: rodape } = await carregarConfigRodape(); // dados do rodapé e assinatura (padrão se ainda não configurou)
     return baixarPdfDieta({
       rodape,
@@ -75,6 +77,7 @@ export default function PacientePage() {
       refeicoes: d.refeicoes,
       itens: d.itens,
       substitutos: d.substitutos,
+      medicoes: (medicoes ?? []).map((m) => ({ ...m, weight_kg: m.weight_kg == null ? null : Number(m.weight_kg), body_fat_pct: null, waist_cm: null, hip_cm: null })),
       opcoes,
     });
   }

@@ -11,6 +11,7 @@ const CHAVE = "pdfOpcoes";
 const ITENS: { chave: keyof OpcoesPdf; titulo: string; dica: string }[] = [
   { chave: "macrosPorRefeicao", titulo: "Macros de cada refeição", dica: "Proteínas, lipídios, carboidratos e calorias ao lado do nome da refeição." },
   { chave: "kcalPorAlimento", titulo: "Calorias de cada alimento", dica: "Mostra as kcal ao lado de cada item." },
+  { chave: "evolucao", titulo: "Evolução do peso", dica: "Gráfico do peso ao longo das consultas. Só aparece se houver 2 ou mais medições de peso registradas." },
   { chave: "substitutos", titulo: "Substitutos dos alimentos", dica: "Mostra, abaixo de cada alimento, as opções que podem ser comidas no lugar." },
   { chave: "resumoDoDia", titulo: "Resumo do dia", dica: "Calorias totais e distribuição de proteínas, carboidratos e lipídios." },
   { chave: "suplementos", titulo: "Suplementos e produtos", dica: "O texto cadastrado na finalização do planejamento." },

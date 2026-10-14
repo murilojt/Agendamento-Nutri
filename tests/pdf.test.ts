@@ -120,3 +120,20 @@ test("PDF: substitutos entram abaixo de cada alimento e podem ser desligados", (
   const semDados = montarDadosPdf({ ...base, substitutos: undefined, opcoes: OPCOES_PADRAO });
   assert.deepEqual(semDados.refeicoes[0].itens[0].substitutos, []);
 });
+
+test("PDF: gráfico de peso só com 2 ou mais medições e com a opção ligada", () => {
+  const med = (id: string, d: string, w: number | null) => ({ id, measured_on: d, weight_kg: w, body_fat_pct: null, waist_cm: 80, hip_cm: null, notes: null });
+  const base = {
+    clinica: "Ayllus", nutricionista: null,
+    paciente: { full_name: "Ana", birth_date: null, weight_kg: null, height_cm: null },
+    dieta: { title: "Plano", objective: null, supplements: null, recipes: null, target_kcal: null, target_protein_gkg: null, target_fat_gkg: null, target_carb_gkg: null },
+    refeicoes: [], itens: [], agora: new Date(2026, 9, 5), logos: { isotipo: null, logotipo: null },
+    rodape: { nome: "", crn: "", telefone: "", email: "", assinatura: null },
+  } as unknown as EntradaPdf;
+  const duas = [med("2", "2026-09-01", 78.5), med("1", "2026-08-01", 82), med("3", "2026-10-01", null)];
+  const r = montarDadosPdf({ ...base, medicoes: duas, opcoes: OPCOES_PADRAO });
+  assert.deepEqual(r.evolucao, { pontos: [{ data: "2026-08-01", valor: 82 }, { data: "2026-09-01", valor: 78.5 }], variacao: -3.5 });
+  assert.equal(montarDadosPdf({ ...base, medicoes: [med("1", "2026-08-01", 82)], opcoes: OPCOES_PADRAO }).evolucao, null);
+  assert.equal(montarDadosPdf({ ...base, medicoes: duas, opcoes: { ...OPCOES_PADRAO, evolucao: false } }).evolucao, null);
+  assert.equal(montarDadosPdf({ ...base, opcoes: OPCOES_PADRAO }).evolucao, null);
+});

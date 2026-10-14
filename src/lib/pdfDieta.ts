@@ -3,6 +3,7 @@
  * O desenho do documento fica em src/components/dieta/DietaPdf.tsx e só é carregado quando a pessoa exporta.
  */
 import { assinaturaValida, dimensoesDaImagem, linhasDoRodape, medidasDaAssinatura, type ConfigRodape } from "./rodapePdf.ts";
+import { serie } from "./evolucao.ts";
 import { analisar, distribuicao, listaDeCompras, somar, type ItemRefeicao, type LinhaAnalise, type LinhaCompra, type Macros, type Protocolo } from "./nutricao.ts";
 
 export type OpcoesPdf = {
@@ -10,6 +11,8 @@ export type OpcoesPdf = {
   macrosPorRefeicao: boolean;
   /** kcal ao lado de cada alimento */
   kcalPorAlimento: boolean;
+  /** gráfico de peso ao longo das consultas (só sai se houver 2 ou mais medições de peso) */
+  evolucao: boolean;
   /** opções que podem ser comidas no lugar de cada alimento */
   substitutos: boolean;
   /** calorias do dia e distribuição dos macros */
@@ -26,6 +29,7 @@ export const OPCOES_PADRAO: OpcoesPdf = {
   macrosPorRefeicao: true,
   kcalPorAlimento: false,
   substitutos: true,
+  evolucao: true,
   resumoDoDia: true,
   comparacaoComMetas: false,
   listaDeCompras: false,
@@ -57,6 +61,8 @@ export type DadosPdf = {
   compras: LinhaCompra[] | null;
   suplementos: string | null;
   receitas: string | null;
+  /** Pesos medidos ao longo do tempo (do mais antigo ao mais recente); null se não for mostrar */
+  evolucao: { pontos: { data: string; valor: number }[]; variacao: number } | null;
   opcoes: OpcoesPdf;
   geradoEm: string; // ISO
   logos: { isotipo: LogoVetorial | null; logotipo: LogoVetorial | null };
@@ -72,6 +78,8 @@ export type EntradaPdf = {
   refeicoes: { id: string; meal_name: string; meal_time: string | null; notes: string | null; position: number }[];
   itens: ItemRefeicao[];
   /** Substitutos de cada alimento (item_id = id do alimento da dieta). Opcional: sem eles o PDF sai igual ao de antes. */
+  /** Medições do paciente (patient_measurements). Opcional. */
+  medicoes?: { measured_on: string; weight_kg: number | null; body_fat_pct: number | null; waist_cm: number | null; hip_cm: number | null; id: string; notes: string | null }[];
   substitutos?: { item_id: string; name: string; quantity_g: number; position: number }[];
   opcoes: OpcoesPdf;
   agora: Date;
@@ -88,6 +96,14 @@ export function idadeEm(nascimento: string | null, ref: Date): number | null {
   let anos = ref.getFullYear() - n.getFullYear();
   if (ref < new Date(ref.getFullYear(), n.getMonth(), n.getDate())) anos--;
   return anos >= 0 ? anos : null;
+}
+
+/** Gráfico de peso: só quando está ligado e há pelo menos duas medições de peso. */
+function evolucaoDoPeso(e: EntradaPdf): DadosPdf["evolucao"] {
+  if (!e.opcoes.evolucao) return null;
+  const pontos = serie(e.medicoes ?? [], "weight_kg");
+  if (pontos.length < 2) return null;
+  return { pontos, variacao: Math.round((pontos[pontos.length - 1].valor - pontos[0].valor) * 10) / 10 };
 }
 
 export function montarDadosPdf(e: EntradaPdf): DadosPdf {
@@ -126,6 +142,7 @@ export function montarDadosPdf(e: EntradaPdf): DadosPdf {
     compras: e.opcoes.listaDeCompras ? listaDeCompras(todos) : null,
     suplementos: e.opcoes.suplementos ? e.dieta.supplements?.trim() || null : null,
     receitas: e.opcoes.receitas ? e.dieta.recipes?.trim() || null : null,
+    evolucao: evolucaoDoPeso(e),
     opcoes: e.opcoes,
     geradoEm: e.agora.toISOString(),
     logos: e.logos,

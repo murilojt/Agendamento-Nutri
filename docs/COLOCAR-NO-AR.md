@@ -141,7 +141,8 @@ Ainda não existe: e-mail de confirmação e convite para o paciente criar a sen
 
 1. No Supabase, rode **`12-evolucao-do-paciente.sql`**.
 2. Na ficha do paciente, clique em **Evolução** e registre peso, gordura corporal, cintura e quadril a cada consulta. O gráfico, a variação desde a primeira medição e o histórico aparecem ali e na área do paciente (só leitura).
-3. Ao registrar um peso novo (o mais recente), o peso do cadastro é atualizado e passa a valer nas metas em g/kg da dieta. Medições antigas lançadas depois não mexem no peso atual.
+3. No **PDF da dieta**, o gráfico **Evolução do peso** aparece logo depois do resumo do dia quando o paciente tem **2 ou mais medições de peso** (opção ligada por padrão em *Exportar PDF*, e dá para desligar).
+4. Ao registrar um peso novo (o mais recente), o peso do cadastro é atualizado e passa a valer nas metas em g/kg da dieta. Medições antigas lançadas depois não mexem no peso atual.
 
 ## Passo 9. Segurança (não pule)
 
