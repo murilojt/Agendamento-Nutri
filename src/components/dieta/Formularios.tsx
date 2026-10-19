@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { listaDeCompras, somar, metaTeorica, type ItemRefeicao } from "@/lib/nutricao";
 import type { Anamnese, Dieta, Favorita, Paciente } from "./tipos";
+import { supabase } from "@/lib/supabase";
+import { gerarSenhaProvisoria, MIN_SENHA_PROVISORIA } from "@/lib/senha";
 import { Modal } from "./Modal";
 import { g1, kcal0 } from "./Macros";
 import { Button } from "@/components/ui/Button";
@@ -252,6 +254,96 @@ export function ListaComprasModal({ aberto, aoFechar, itens, paciente }: { abert
           </table>
           <Button type="button" onClick={copiar}>{copiado ? "Copiado!" : "Copiar lista da semana"}</Button>
         </>
+      )}
+    </Modal>
+  );
+}
+
+/* ---------- Senha do paciente ---------- */
+/** A nutricionista define uma senha provisória para o paciente e pode exigir que ele a troque no próximo acesso. */
+export function SenhaPacienteModal({ aberto, aoFechar, paciente }: { aberto: boolean; aoFechar: () => void; paciente: Paciente }) {
+  const [senha, setSenha] = useState("");
+  const [exigir, setExigir] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
+  const [resultado, setResultado] = useState<{ senha: string; trocaExigida: boolean; avisoSql: boolean } | null>(null);
+  const [copiado, setCopiado] = useState(false);
+
+  useEffect(() => {
+    if (!aberto) return;
+    setSenha(gerarSenhaProvisoria());
+    setExigir(true);
+    setErro(null);
+    setResultado(null);
+    setCopiado(false);
+  }, [aberto]);
+
+  async function enviar(e: React.FormEvent) {
+    e.preventDefault();
+    setErro(null);
+    if (senha.length < MIN_SENHA_PROVISORIA) return setErro(`A senha precisa ter pelo menos ${MIN_SENHA_PROVISORIA} caracteres.`);
+    setSalvando(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/pacientes/senha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientId: paciente.id, password: senha, forceChange: exigir, nutritionistAccessToken: session?.access_token }),
+      });
+      const corpo = await res.json().catch(() => null);
+      if (!res.ok) return setErro(corpo?.error ?? "Não foi possível alterar a senha.");
+      setResultado({ senha, trocaExigida: !!corpo.trocaExigida, avisoSql: !!corpo.avisoSql });
+    } catch {
+      setErro("Não foi possível conectar ao servidor. Tente de novo.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function copiar() {
+    try {
+      await navigator.clipboard.writeText(resultado?.senha ?? "");
+      setCopiado(true);
+    } catch {
+      // sem permissão para copiar: a senha continua visível na tela
+    }
+  }
+
+  return (
+    <Modal aberto={aberto} aoFechar={aoFechar} titulo="Redefinir senha do paciente">
+      {resultado ? (
+        <div className="flex flex-col gap-4">
+          <p className="text-sm">A senha de <strong>{paciente.full_name ?? "o paciente"}</strong> foi alterada. Repasse a senha provisória abaixo:</p>
+          <p className="rounded-2xl border px-4 py-3 text-center font-mono text-xl tracking-wider" style={{ borderColor: "var(--color-border)", background: "var(--fundo-alt)" }} data-testid="senha-gerada">{resultado.senha}</p>
+          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+            {resultado.trocaExigida
+              ? "No próximo acesso, o paciente será obrigado a criar uma senha nova."
+              : "O paciente poderá continuar usando esta senha."}
+          </p>
+          {resultado.avisoSql && (
+            <p className="text-sm" role="alert" style={{ color: "var(--color-danger)" }}>
+              A senha foi alterada, mas a troca obrigatória ainda não está ativa. No Supabase, rode o script <strong>13-trocar-senha-no-primeiro-acesso.sql</strong>.
+            </p>
+          )}
+          <div className="flex gap-2">
+            <Button type="button" onClick={copiar}>{copiado ? "Copiada!" : "Copiar senha"}</Button>
+            <button type="button" onClick={aoFechar} className="rounded-2xl border px-4 py-3 text-sm font-semibold" style={{ borderColor: "var(--color-border)" }}>Fechar</button>
+          </div>
+        </div>
+      ) : (
+        <form onSubmit={enviar}>
+          <p className="mb-4 text-sm" style={{ color: "var(--color-text-muted)" }}>
+            Define uma nova senha para <strong>{paciente.full_name ?? "o paciente"}</strong>. A senha antiga deixa de funcionar na hora.
+          </p>
+          <TextField label="Senha provisória" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="off" spellCheck={false} className="font-mono" containerClassName="mb-2" />
+          <button type="button" onClick={() => setSenha(gerarSenhaProvisoria())} className="mb-4 text-sm font-semibold underline">Gerar outra</button>
+          <label className="mb-4 flex items-start gap-2 text-sm">
+            <input type="checkbox" checked={exigir} onChange={(e) => setExigir(e.target.checked)} className="mt-1" />
+            <span>Exigir que o paciente crie uma senha nova no próximo acesso <span style={{ color: "var(--color-text-muted)" }}>(recomendado)</span></span>
+          </label>
+          <ErrorText>{erro}</ErrorText>
+          <Button type="submit" disabled={salvando}>{salvando ? "Salvando…" : "Definir senha"}</Button>
+        </form>
       )}
     </Modal>
   );

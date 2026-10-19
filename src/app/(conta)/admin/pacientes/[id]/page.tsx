@@ -17,14 +17,14 @@ import { baixarPdfDieta } from "@/components/dieta/gerarPdf";
 import { supabase } from "@/lib/supabase";
 import type { OpcoesPdf } from "@/lib/pdfDieta.ts";
 import { carregarConfigRodape } from "@/lib/configuracoesNutri";
-import { AnamneseModal, DadosPacienteModal, FavoritasModal, ListaComprasModal, ProtocoloModal, TextoModal } from "@/components/dieta/Formularios";
+import { AnamneseModal, DadosPacienteModal, SenhaPacienteModal, FavoritasModal, ListaComprasModal, ProtocoloModal, TextoModal } from "@/components/dieta/Formularios";
 import { SubstitutosModal } from "@/components/dieta/SubstitutosModal";
 import type { ItemRefeicao } from "@/lib/nutricao";
 import { EvolucaoPainel } from "@/components/dieta/EvolucaoPainel";
 import { Modal } from "@/components/dieta/Modal";
 import { IcoMais } from "@/components/dieta/Icones";
 
-type Janela = "evolucao" | "pdf" | "protocolo" | "dados" | "anamnese" | "favoritas" | "suplementos" | "receitas" | "compras" | null;
+type Janela = "senha" | "evolucao" | "pdf" | "protocolo" | "dados" | "anamnese" | "favoritas" | "suplementos" | "receitas" | "compras" | null;
 
 const idade = (nasc: string | null) => {
   if (!nasc) return null;
@@ -113,6 +113,8 @@ export default function PacientePage() {
               {[paciente.phone, paciente.birth_date && `${new Date(`${paciente.birth_date}T12:00:00`).toLocaleDateString("pt-BR")}${anos != null ? ` (${anos} anos)` : ""}`, paciente.weight_kg && `${paciente.weight_kg.toLocaleString("pt-BR")} kg`, paciente.height_cm && `${paciente.height_cm.toLocaleString("pt-BR")} cm`, paciente.email].filter(Boolean).join(" · ") || "Sem dados de contato"}
               {" "}
               <button type="button" onClick={() => setJanela("dados")} className="font-semibold underline">Editar dados</button>
+              {" · "}
+              <button type="button" onClick={() => setJanela("senha")} className="font-semibold underline">Redefinir senha</button>
             </p>
           </div>
           <Link href="/admin" className="text-sm font-semibold underline">Voltar para pacientes</Link>
@@ -240,6 +242,7 @@ export default function PacientePage() {
       <Modal aberto={janela === "evolucao"} aoFechar={fechar} titulo="Evolução do paciente" larga>
         <EvolucaoPainel patientId={paciente.id} editavel alturaCm={paciente.height_cm} aoAtualizarPeso={(kg) => void d.salvarPaciente({ weight_kg: kg })} />
       </Modal>
+      <SenhaPacienteModal aberto={janela === "senha"} aoFechar={fechar} paciente={paciente} />
       <DadosPacienteModal aberto={janela === "dados"} aoFechar={fechar} paciente={paciente} salvar={d.salvarPaciente} />
       <AnamneseModal aberto={janela === "anamnese"} aoFechar={fechar} ler={d.lerAnamnese} salvar={d.salvarAnamnese} />
       <FavoritasModal aberto={janela === "favoritas"} aoFechar={fechar} favoritas={d.favoritas} usar={dieta ? d.usarFavorita : async () => {}} apagar={d.apagarFavorita} />

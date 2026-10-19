@@ -144,6 +144,14 @@ Ainda não existe: e-mail de confirmação e convite para o paciente criar a sen
 3. No **PDF da dieta**, o gráfico **Evolução do peso** aparece logo depois do resumo do dia quando o paciente tem **2 ou mais medições de peso** (opção ligada por padrão em *Exportar PDF*, e dá para desligar).
 4. Ao registrar um peso novo (o mais recente), o peso do cadastro é atualizado e passa a valer nas metas em g/kg da dieta. Medições antigas lançadas depois não mexem no peso atual.
 
+## Passo 8e. Redefinir a senha de um paciente
+
+1. No Supabase, rode **`13-trocar-senha-no-primeiro-acesso.sql`**.
+2. Na ficha do paciente, clique em **Redefinir senha**. O sistema sugere uma senha provisória (você pode editar ou gerar outra). Deixe marcado **Exigir que o paciente crie uma senha nova no próximo acesso** e clique em **Definir senha**.
+3. Copie a senha exibida e repasse ao paciente. A senha antiga deixa de funcionar na hora. Ao entrar com a provisória, o paciente é levado a uma tela para criar a senha dele, e só então acessa a área dele.
+
+Serve também para pacientes criados pelo agendamento (pré-cadastro), que ainda não têm senha conhecida.
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.

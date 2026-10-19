@@ -13,6 +13,7 @@ Rode os scripts **nesta ordem exata** no SQL Editor do Supabase (cada um é incr
 9. `10-pacientes-e-agendamento.sql`: identificação de quem agenda (celular, nascimento, vínculo automático com o paciente, pré-cadastro, "1ª consulta"/"Retorno", consultas realizadas/faltas e fila de revisão). Sem ele o agendamento continua funcionando, só sem esses recursos.
 10. `11-substitutos-da-dieta.sql`: substitutos de cada alimento da dieta (botão **Substitutos** no montador). Sem ele, o botão abre um aviso pedindo para rodar o script.
 11. `12-evolucao-do-paciente.sql`: peso e medidas do paciente ao longo do tempo (botão **Evolução** na ficha e gráfico na área do paciente). Sem ele, o botão abre um aviso pedindo para rodar o script.
-12. `07-alimentos-de-referencia.sql` (**opcional**, pode rodar em qualquer ponto depois do 06): 30 alimentos com valores **aproximados**, só para testar. Para uso real, importe a TACO em `/admin/alimentos` e apague estes.
+12. `13-trocar-senha-no-primeiro-acesso.sql`: permite exigir que o paciente troque a senha provisória no próximo acesso. Sem ele, a nutricionista ainda redefine a senha, só que a troca não é obrigatória.
+13. `07-alimentos-de-referencia.sql` (**opcional**, pode rodar em qualquer ponto depois do 06): 30 alimentos com valores **aproximados**, só para testar. Para uso real, importe a TACO em `/admin/alimentos` e apague estes.
 
-Instalação nova: rode todos. Banco que já tinha 01 a 04 (do app e do painel antigos): rode o 05, o 06 e, se quiser testar, o 07. Banco que já está no ar com o 05: rode o 06, o 08, o 09, o 10, o 11 e o 12 (e o 07, se quiser testar).
+Instalação nova: rode todos. Banco que já tinha 01 a 04 (do app e do painel antigos): rode o 05, o 06 e, se quiser testar, o 07. Banco que já está no ar com o 05: rode o 06, o 08, o 09, o 10, o 11, o 12 e o 13 (e o 07, se quiser testar).

@@ -22,7 +22,12 @@ export default function PacienteLayout({ children }: { children: React.ReactNode
       } = await supabase.auth.getSession();
       if (!session) return router.replace("/entrar");
 
-      const { data: perfil, error } = await supabase.from("profiles").select("role, full_name").eq("id", session.user.id).single();
+      type Perfil = { role: string; full_name: string | null; must_change_password?: boolean };
+      const completo = await supabase.from("profiles").select("role, full_name, must_change_password").eq("id", session.user.id).single();
+      // Sem o patch SQL 13 a coluna não existe: lê de novo sem ela (a troca obrigatória fica inativa)
+      const lido = completo.error ? await supabase.from("profiles").select("role, full_name").eq("id", session.user.id).single() : completo;
+      const perfil = lido.data as Perfil | null;
+      const error = lido.error;
       if (error) {
         setCheckError("Não foi possível verificar sua conta. Tente recarregar a página.");
         setChecking(false);
@@ -30,6 +35,9 @@ export default function PacienteLayout({ children }: { children: React.ReactNode
       }
       // A nutricionista tem o painel; esta área é só do paciente
       if (perfil?.role === "nutritionist") return router.replace("/admin");
+
+      // Senha provisória definida pela nutricionista: a troca vem antes de tudo
+      if (perfil?.must_change_password) return router.replace("/trocar-senha");
 
       setName(perfil?.full_name ?? session.user.email ?? "");
       setChecking(false);
