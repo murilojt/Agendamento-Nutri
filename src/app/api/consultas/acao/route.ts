@@ -3,11 +3,16 @@ import { z } from "zod";
 import { getSupabaseAdmin, exigirSupabaseAdmin } from "@/lib/servidor/supabaseAdmin";
 import { AuthError, requireNutritionist } from "@/lib/servidor/serverAuth";
 import { getClientIp, rateLimit } from "@/lib/servidor/rateLimit";
+import { CONFIG_AGENDA } from "@/core/config";
+import { dataLocal, horariosDoDia, isoLocal, montarDataHora, somarDias } from "@/core/disponibilidade";
+import { getCalendario, HorarioOcupadoError } from "@/lib/calendario";
+import { tituloDoEvento } from "@/core/pacientes";
 import { criarPreCadastro, recalcularTipos } from "@/lib/servidor/vinculoPaciente";
 
 const schema = z.object({
   consultaId: z.string().uuid().optional(),
-  acao: z.enum(["realizada", "faltou", "reabrir", "vincular", "cadastrar", "dispensar", "recalcular"]),
+  acao: z.enum(["realizada", "faltou", "reabrir", "vincular", "cadastrar", "dispensar", "recalcular", "remarcar"]),
+  novoInicio: z.string().datetime({ offset: true }).optional(),
   pacienteId: z.string().uuid().optional(),
   nutritionistAccessToken: z.string().min(1, "Não autenticado."),
 });
@@ -23,7 +28,7 @@ export async function POST(req: NextRequest) {
 
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos." }, { status: 400 });
-  const { consultaId, acao, pacienteId, nutritionistAccessToken } = parsed.data;
+  const { consultaId, acao, pacienteId, novoInicio, nutritionistAccessToken } = parsed.data;
 
   try {
     const caller = await requireNutritionist(nutritionistAccessToken);
@@ -36,8 +41,56 @@ export async function POST(req: NextRequest) {
     }
     if (!consultaId) return NextResponse.json({ error: "Consulta não informada." }, { status: 400 });
 
-    const { data: c } = await admin.from("appointments").select("id, patient_id, guest_name, guest_email, guest_phone, guest_birth_date, starts_at").eq("id", consultaId).maybeSingle();
+    // Sem o patch SQL 10 as colunas guest_birth_date e kind não existem: lê de novo só com as básicas
+    const BASE = "id, patient_id, google_event_id, status, guest_name, guest_email, guest_phone, starts_at, ends_at";
+    let lido = await admin.from("appointments").select(`${BASE}, guest_birth_date, kind`).eq("id", consultaId).maybeSingle();
+    if (lido.error) lido = await admin.from("appointments").select(BASE).eq("id", consultaId).maybeSingle();
+    const c = lido.data as unknown as { id: string; patient_id: string | null; google_event_id: string | null; status: string; guest_name: string; guest_email: string; guest_phone: string; starts_at: string; ends_at: string; guest_birth_date?: string | null; kind?: "first" | "return" | null } | null;
     if (!c) return NextResponse.json({ error: "Consulta não encontrada." }, { status: 404 });
+
+    if (acao === "remarcar") {
+      if (!novoInicio) return NextResponse.json({ error: "Escolha o novo dia e horário." }, { status: 400 });
+      if (c.status !== "confirmed") return NextResponse.json({ error: "Só dá para remarcar consultas confirmadas." }, { status: 409 });
+
+      const inicio = new Date(novoInicio);
+      const fim = new Date(inicio.getTime() + CONFIG_AGENDA.duracaoMin * 60_000);
+      if (inicio.getTime() === new Date(c.starts_at).getTime()) return NextResponse.json({ error: "A consulta já está nesse horário." }, { status: 400 });
+
+      const calendario = getCalendario();
+      // Só horários que a agenda oferece e que estão livres (mesma regra de quem agenda pelo site)
+      const dia = dataLocal(inicio);
+      const ocupados = await calendario.ocupados(montarDataHora(dia, "00:00"), montarDataHora(somarDias(dia, 1), "00:00"));
+      const horario = horariosDoDia({ data: dia, ocupados }).find((h) => h.inicio === isoLocal(inicio));
+      if (!horario) return NextResponse.json({ error: "Esse horário não está disponível na agenda." }, { status: 400 });
+      if (!horario.livre) return NextResponse.json({ error: "Esse horário já está ocupado. Escolha outro." }, { status: 409 });
+
+      const [nome, ...resto] = (c.guest_name ?? "").trim().split(/\s+/);
+      const reserva = {
+        inicio, fim,
+        titulo: tituloDoEvento(nome ?? "", resto.join(" "), c.kind ?? null),
+        descricao: [`Paciente: ${c.guest_name}`, `Celular: ${c.guest_phone}`, `E-mail: ${c.guest_email}`, "", "Remarcado pela nutricionista."].join("\n"),
+        dados: { nome: nome ?? "", sobrenome: resto.join(" "), celular: c.guest_phone ?? "", email: c.guest_email ?? "", ...(c.patient_id ? { pacienteId: c.patient_id } : {}) },
+      };
+
+      let novoId: string;
+      try {
+        novoId = c.google_event_id ? await calendario.mover(c.google_event_id, inicio, fim, reserva) : await calendario.reservar(reserva);
+      } catch (e) {
+        if (e instanceof HorarioOcupadoError) return NextResponse.json({ error: "Esse horário já está ocupado. Escolha outro." }, { status: 409 });
+        console.error(e);
+        return NextResponse.json({ error: "Não foi possível alterar a Google Agenda agora. Nada foi remarcado; tente de novo." }, { status: 502 });
+      }
+
+      const { error: upErro } = await admin.from("appointments").update({ starts_at: inicio.toISOString(), ends_at: fim.toISOString(), google_event_id: novoId }).eq("id", consultaId);
+      if (upErro) {
+        console.error("Consulta movida na agenda, mas não no banco:", upErro.message);
+        // desfaz na agenda para não ficar diferente do banco
+        if (c.google_event_id) await calendario.mover(novoId, new Date(c.starts_at), new Date(c.ends_at), reserva).catch(() => null);
+        return NextResponse.json({ error: "Não foi possível salvar a remarcação. Tente de novo." }, { status: 500 });
+      }
+      if (c.patient_id) await recalcularTipos(c.patient_id);
+      return NextResponse.json({ ok: true, inicio: isoLocal(inicio) });
+    }
 
     if (acao === "realizada" || acao === "faltou" || acao === "reabrir") {
       const { error } = await admin.from("appointments").update({ status: STATUS[acao] }).eq("id", consultaId);

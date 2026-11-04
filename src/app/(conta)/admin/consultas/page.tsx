@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Carregando } from "@/components/ui/Carregando";
 import { ErrorText } from "@/components/ui/ErrorText";
 import { dataHoraCompleta } from "@/lib/formatar";
+import { RemarcarConsultaModal } from "@/components/RemarcarConsultaModal";
 import { MOTIVOS_REVISAO, rotuloTipo, type MotivoRevisao } from "@/core/pacientes";
 
 type Consulta = {
@@ -26,6 +27,7 @@ type Consulta = {
 
 type Aba = "proximas" | "anteriores" | "revisar";
 type Acao = "realizada" | "faltou" | "reabrir" | "vincular" | "cadastrar" | "dispensar";
+type Aviso = { tipo: "ok"; texto: string };
 
 const COLUNAS_BASE = "id, starts_at, status, patient_id, guest_name, guest_email, guest_phone, profiles!appointments_patient_id_fkey(full_name)";
 const COLUNAS_NOVAS = `${COLUNAS_BASE}, kind, needs_review, review_reason, suggested_patient_id`;
@@ -42,6 +44,8 @@ export default function ConsultasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ocupada, setOcupada] = useState<string | null>(null);
+  const [remarcando, setRemarcando] = useState<Consulta | null>(null);
+  const [aviso, setAviso] = useState<Aviso | null>(null);
 
   const carregar = useCallback(async () => {
     const consulta = (colunas: string) => supabase.from("appointments").select(colunas).order("starts_at", { ascending: false }).limit(200);
@@ -83,6 +87,21 @@ export default function ConsultasPage() {
     setOcupada(null);
   }
 
+  /** Devolve a mensagem de erro, ou null se a consulta foi remarcada. */
+  async function remarcar(consultaId: string, novoInicio: string): Promise<string | null> {
+    const { data: { session } } = await supabase.auth.getSession();
+    const res = await fetch("/api/consultas/acao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ consultaId, acao: "remarcar", novoInicio, nutritionistAccessToken: session?.access_token }),
+    }).catch(() => null);
+    if (!res?.ok) return (await res?.json().catch(() => null))?.error ?? "Não foi possível remarcar. Tente novamente.";
+    setRemarcando(null);
+    setAviso({ tipo: "ok", texto: "Consulta remarcada. A Google Agenda foi atualizada." });
+    await carregar();
+    return null;
+  }
+
   const agora = Date.now();
   const revisar = consultas.filter((c) => c.needs_review && c.status !== "cancelled");
   const proximas = consultas.filter((c) => new Date(c.starts_at).getTime() >= agora - 60 * 60_000 && c.status === "confirmed").reverse();
@@ -117,6 +136,12 @@ export default function ConsultasPage() {
         ))}
       </div>
 
+      {aviso && (
+        <div role="status" className="mb-4 flex items-center justify-between gap-4 rounded-2xl px-4 py-3 text-sm font-medium" style={{ background: "var(--gema)", color: "var(--sobre-gema)" }}>
+          <span>{aviso.texto}</span>
+          <button type="button" onClick={() => setAviso(null)} className="font-semibold underline">OK</button>
+        </div>
+      )}
       <ErrorText>{error}</ErrorText>
 
       {loading ? (
@@ -191,6 +216,7 @@ export default function ConsultasPage() {
                     <>
                       <button disabled={trabalhando} onClick={() => executar(c.id, "realizada")} className={botao} style={estiloSuave}>Marcar realizada</button>
                       <button disabled={trabalhando} onClick={() => executar(c.id, "faltou")} className={botao} style={estiloSuave}>Faltou</button>
+                      <button disabled={trabalhando} onClick={() => { setAviso(null); setRemarcando(c); }} className={botao} style={estiloSuave}>Remarcar</button>
                     </>
                   )}
                   {(c.status === "completed" || c.status === "no_show") && (
@@ -202,6 +228,7 @@ export default function ConsultasPage() {
           })}
         </div>
       )}
+      <RemarcarConsultaModal consulta={remarcando} aoFechar={() => setRemarcando(null)} aoConfirmar={remarcar} />
     </div>
   );
 }

@@ -158,6 +158,10 @@ Serve também para pacientes criados pelo agendamento (pré-cadastro), que ainda
 2. O paciente passa a ter, no menu da área dele, a aba **Dieta** com três seções: **Plano alimentar** (com substitutos e observações), **Lista de compras** (7 dias, com caixas para marcar o que já comprou; a marcação fica guardada no aparelho dele) e **Receitas e orientações** (objetivo, suplementos e receitas que você preenche na ficha).
 3. O botão **Exportar PDF**, no canto superior direito, baixa o mesmo PDF da dieta (resumo do dia, substitutos, suplementos, receitas e gráfico de evolução quando houver 2 ou mais medições de peso).
 
+## Passo 8g. Remarcar consultas pelo painel
+
+Não precisa de script no Supabase. Em **Consultas**, as consultas confirmadas têm o botão **Remarcar**. Escolha o novo dia e clique em um dos horários livres da agenda (os ocupados e o horário atual aparecem desabilitados). Ao confirmar, o evento é movido na Google Agenda, o horário antigo volta a ficar livre para novos agendamentos, e a consulta mantém o paciente e o selo de 1ª consulta/retorno. Só dá para remarcar para horários de atendimento livres, os mesmos que o site oferece. O paciente ainda não recebe aviso da remarcação (depende de e-mail).
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.
