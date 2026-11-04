@@ -162,6 +162,10 @@ Serve também para pacientes criados pelo agendamento (pré-cadastro), que ainda
 
 Não precisa de script no Supabase. Em **Consultas**, as consultas confirmadas têm o botão **Remarcar**. Escolha o novo dia e clique em um dos horários livres da agenda (os ocupados e o horário atual aparecem desabilitados). Ao confirmar, o evento é movido na Google Agenda, o horário antigo volta a ficar livre para novos agendamentos, e a consulta mantém o paciente e o selo de 1ª consulta/retorno. Só dá para remarcar para horários de atendimento livres, os mesmos que o site oferece. O paciente ainda não recebe aviso da remarcação (depende de e-mail).
 
+## Passo 8h. Calculadora de marmitas (paciente)
+
+Não precisa de script no Supabase. No menu do paciente há a página **Marmitas**: ele escolhe quantas marmitas quer deixar prontas (7, 14, 30 ou outro número de 1 a 90) e quais refeições (almoço e jantar já vêm marcados), e o sistema multiplica cada alimento da dieta pelo número de marmitas. Se o mesmo alimento aparece em mais de uma refeição escolhida, as quantidades são somadas. Também mostra as calorias de cada marmita e tem o botão **Copiar lista**. As quantidades são as da dieta (alimento já cozido ou preparado).
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.
