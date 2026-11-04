@@ -154,7 +154,7 @@ Serve também para pacientes criados pelo agendamento (pré-cadastro), que ainda
 
 ## Passo 8f. A dieta na área do paciente
 
-1. No Supabase, rode **`14-paciente-le-rodape-da-nutricionista.sql`** (para o PDF do paciente sair com o rodapé e a assinatura da nutricionista).
+1. No Supabase, rode **`14-paciente-le-rodape-da-nutricionista.sql`**. Ele depende do `09-assinatura-e-rodape-do-pdf.sql`, então rode o 09 antes se ainda não rodou (erro `relation "public.nutritionist_settings" does not exist` = falta o 09). É para o PDF do paciente sair com o rodapé e a assinatura da nutricionista.
 2. O paciente passa a ter, no menu da área dele, a aba **Dieta** com três seções: **Plano alimentar** (com substitutos e observações), **Lista de compras** (7 dias, com caixas para marcar o que já comprou; a marcação fica guardada no aparelho dele) e **Receitas e orientações** (objetivo, suplementos e receitas que você preenche na ficha).
 3. O botão **Exportar PDF**, no canto superior direito, baixa o mesmo PDF da dieta (resumo do dia, substitutos, suplementos, receitas e gráfico de evolução quando houver 2 ou mais medições de peso).
 
