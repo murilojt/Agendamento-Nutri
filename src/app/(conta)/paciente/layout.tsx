@@ -66,42 +66,63 @@ export default function PacienteLayout({ children }: { children: React.ReactNode
     );
   }
 
+  const LINKS = [
+    { href: "/paciente", rotulo: "Início", ativo: pathname === "/paciente" },
+    { href: "/paciente/dieta", rotulo: "Dieta", ativo: pathname.startsWith("/paciente/dieta") },
+    { href: "/agendar", rotulo: "Agendar consulta", ativo: false },
+  ];
+
+  // Mesmo formato do painel da nutricionista: menu lateral no computador, menu em linha no celular
   return (
-    <div className="min-h-screen px-4 py-4">
-      <header className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 rounded-full px-5 py-2" style={{ background: "var(--profundo)" }}>
-        <Link href="/paciente" aria-label="Ayllus, minha área" className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/marca/ayllus-isotipo-dourado.svg" alt="" width={168} height={191} className="h-9 w-auto" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/marca/ayllus-logotipo-dourado.svg" alt="Ayllus" width={370} height={100} className="hidden h-7 w-auto sm:block" />
-        </Link>
-        <div className="flex items-center gap-3">
-          <span className="hidden max-w-[10rem] truncate text-sm sm:block" style={{ color: "var(--sobre-profundo-suave)" }}>
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <aside
+        className="flex shrink-0 flex-col gap-4 p-5 md:w-64 md:justify-between md:p-6"
+        style={{ background: "var(--profundo)", color: "var(--sobre-profundo)" }}
+      >
+        <div>
+          <div className="mb-4 flex items-center justify-between md:mb-8 md:block">
+            <Link href="/paciente" aria-label="Ayllus, minha área" className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/marca/ayllus-isotipo-dourado.svg" alt="" width={168} height={191} className="h-9 w-auto" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/marca/ayllus-logotipo-dourado.svg" alt="Ayllus" width={370} height={100} className="h-7 w-auto" />
+            </Link>
+            <div className="md:hidden">
+              <BotaoTema />
+            </div>
+          </div>
+          <p className="mb-4 truncate text-xs md:mb-6" style={{ color: "var(--sobre-profundo-suave)" }}>
             {name}
-          </span>
-          <BotaoTema />
-          <button onClick={sair} className="rounded-full px-4 py-2 text-sm font-semibold" style={{ background: "var(--gema)", color: "var(--sobre-gema)" }}>
+          </p>
+          <nav className="flex items-start gap-1 overflow-x-auto md:flex-col md:overflow-visible" aria-label="Minha área">
+            {LINKS.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={l.ativo ? "page" : undefined}
+                className="shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold"
+                style={l.ativo ? { background: "var(--gema)", color: "var(--sobre-gema)" } : { color: "var(--sobre-profundo)" }}
+              >
+                {l.rotulo}
+              </Link>
+            ))}
+          </nav>
+        </div>
+        <div className="flex items-center justify-between gap-3 md:flex-col md:items-start">
+          <div className="hidden md:block">
+            <BotaoTema />
+          </div>
+          <Link href="/" className="text-sm font-medium" style={{ color: "var(--sobre-profundo-suave)" }}>
+            Ver o site
+          </Link>
+          <button onClick={sair} className="text-left text-sm font-semibold" style={{ color: "var(--gema)" }}>
             Sair
           </button>
         </div>
-      </header>
-      <nav className="mx-auto mt-4 flex w-full max-w-3xl gap-2" aria-label="Minha área">
-        {[
-          { href: "/paciente", rotulo: "Início", ativo: pathname === "/paciente" },
-          { href: "/paciente/dieta", rotulo: "Dieta", ativo: pathname.startsWith("/paciente/dieta") },
-        ].map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            aria-current={l.ativo ? "page" : undefined}
-            className="rounded-full border px-5 py-2 text-sm font-semibold"
-            style={l.ativo ? { background: "var(--color-primary)", color: "var(--color-on-primary)", borderColor: "var(--color-primary)" } : { borderColor: "var(--color-border)", background: "var(--color-surface)" }}
-          >
-            {l.rotulo}
-          </Link>
-        ))}
-      </nav>
-      <main className="mx-auto w-full max-w-3xl pt-8 pb-16">{children}</main>
+      </aside>
+      <main className="min-w-0 flex-1 p-5 md:p-10">
+        <div className="mx-auto w-full max-w-3xl pb-10">{children}</div>
+      </main>
     </div>
   );
 }
