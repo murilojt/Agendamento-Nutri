@@ -152,6 +152,12 @@ Ainda não existe: e-mail de confirmação e convite para o paciente criar a sen
 
 Serve também para pacientes criados pelo agendamento (pré-cadastro), que ainda não têm senha conhecida.
 
+## Passo 8f. A dieta na área do paciente
+
+1. No Supabase, rode **`14-paciente-le-rodape-da-nutricionista.sql`** (para o PDF do paciente sair com o rodapé e a assinatura da nutricionista).
+2. O paciente passa a ter, no menu da área dele, a aba **Dieta** com três seções: **Plano alimentar** (com substitutos e observações), **Lista de compras** (7 dias, com caixas para marcar o que já comprou; a marcação fica guardada no aparelho dele) e **Receitas e orientações** (objetivo, suplementos e receitas que você preenche na ficha).
+3. O botão **Exportar PDF**, no canto superior direito, baixa o mesmo PDF da dieta (resumo do dia, substitutos, suplementos, receitas e gráfico de evolução quando houver 2 ou mais medições de peso).
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.

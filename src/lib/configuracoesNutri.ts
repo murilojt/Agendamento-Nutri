@@ -12,6 +12,13 @@ export async function carregarConfigRodape(): Promise<{ config: ConfigRodape; ta
   return { config: comPadrao(data), tabelaExiste: true };
 }
 
+/** Configurações de uma nutricionista específica (usado na área do paciente). Sem permissão ou sem o patch SQL 14, devolve o padrão. */
+export async function carregarConfigRodapeDe(nutritionistId: string | null): Promise<ConfigRodape> {
+  if (!nutritionistId) return comPadrao(null);
+  const { data, error } = await supabase.from("nutritionist_settings").select("clinic_name, display_name, crn, phone, email, signature_data").eq("nutritionist_id", nutritionistId).maybeSingle();
+  return comPadrao(error ? null : data);
+}
+
 export async function salvarConfigRodape(c: ConfigRodape): Promise<string | null> {
   const {
     data: { user },

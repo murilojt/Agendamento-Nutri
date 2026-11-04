@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { supabase, supabaseConfigurado, MSG_NAO_CONFIGURADO } from "@/lib/supabase";
 import { BotaoTema } from "@/components/BotaoTema";
 import { Carregando } from "@/components/ui/Carregando";
@@ -10,6 +10,7 @@ import { ErrorText } from "@/components/ui/ErrorText";
 
 export default function PacienteLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [checking, setChecking] = useState(true);
   const [name, setName] = useState("");
   const [checkError, setCheckError] = useState<string | null>(supabaseConfigurado ? null : MSG_NAO_CONFIGURADO);
@@ -84,7 +85,23 @@ export default function PacienteLayout({ children }: { children: React.ReactNode
           </button>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl pt-10 pb-16">{children}</main>
+      <nav className="mx-auto mt-4 flex w-full max-w-3xl gap-2" aria-label="Minha área">
+        {[
+          { href: "/paciente", rotulo: "Início", ativo: pathname === "/paciente" },
+          { href: "/paciente/dieta", rotulo: "Dieta", ativo: pathname.startsWith("/paciente/dieta") },
+        ].map((l) => (
+          <Link
+            key={l.href}
+            href={l.href}
+            aria-current={l.ativo ? "page" : undefined}
+            className="rounded-full border px-5 py-2 text-sm font-semibold"
+            style={l.ativo ? { background: "var(--color-primary)", color: "var(--color-on-primary)", borderColor: "var(--color-primary)" } : { borderColor: "var(--color-border)", background: "var(--color-surface)" }}
+          >
+            {l.rotulo}
+          </Link>
+        ))}
+      </nav>
+      <main className="mx-auto w-full max-w-3xl pt-8 pb-16">{children}</main>
     </div>
   );
 }
