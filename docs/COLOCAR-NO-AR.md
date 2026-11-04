@@ -166,6 +166,15 @@ Não precisa de script no Supabase. Em **Consultas**, as consultas confirmadas t
 
 Não precisa de script no Supabase. No menu do paciente há a página **Marmitas**: ele escolhe quantas marmitas quer deixar prontas (7, 14, 30 ou outro número de 1 a 90) e quais refeições (almoço e jantar já vêm marcados), e o sistema multiplica cada alimento da dieta pelo número de marmitas. Se o mesmo alimento aparece em mais de uma refeição escolhida, as quantidades são somadas. Também mostra as calorias de cada marmita e tem o botão **Copiar lista**. As quantidades são as da dieta (alimento já cozido ou preparado).
 
+## Passo 8i. Medidas caseiras na dieta
+
+1. No Supabase, rode **`15-medidas-caseiras.sql`**.
+2. Na ficha do paciente, ao lado da quantidade de cada alimento há uma lista de unidades: **g (gramas)**, as medidas cadastradas para aquele alimento e **+ Nova medida…**. Em "Nova medida" você informa o nome (colher de sopa, unidade, fatia...), o plural e **quantos gramas tem 1 unidade** daquele alimento (1 colher de sopa de arroz não pesa o mesmo que 1 de azeite). Deixe marcado "Salvar para este alimento" para reaproveitar nas outras dietas. Os gramas sugeridos para colher de sopa/sobremesa/chá e copo são só um ponto de partida: ajuste ao alimento.
+3. Também dá para cadastrar e apagar medidas em **Alimentos → Editar → Medidas caseiras**.
+4. A dieta continua guardando as **gramas** (os cálculos de calorias, lista de compras e marmitas seguem em gramas). A medida caseira é a forma de mostrar: o paciente e o PDF passam a ver, por exemplo, "4 colheres de sopa" com "100 g" embaixo.
+
+Substitutos e refeições favoritas continuam em gramas por enquanto.
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.

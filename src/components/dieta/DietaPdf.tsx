@@ -65,7 +65,9 @@ const s = StyleSheet.create({
   itemLinha: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4.5, paddingHorizontal: 10, borderTopWidth: 0.5, borderTopColor: AREIA },
   itemNome: { flexGrow: 1, flexShrink: 1, flexBasis: 0, paddingRight: 10 },
   colunaNome: { flexGrow: 1, flexShrink: 1, flexBasis: 0, paddingRight: 10 },
-  itemQtd: { fontWeight: 700, color: FLORESTA, width: 52, textAlign: "right" },
+  itemQtdCaixa: { width: 110, alignItems: "flex-end" },
+  itemQtd: { fontWeight: 700, color: FLORESTA, textAlign: "right" },
+  itemQtdGramas: { fontSize: 8, color: MUDO, textAlign: "right" },
   itemKcal: { color: MUDO, width: 52, textAlign: "right", fontSize: 8.5 },
   substitutos: { fontSize: 8.5, color: MUDO, paddingHorizontal: 10, paddingBottom: 5, marginTop: -1.5, lineHeight: 1.35 },
   substitutosRotulo: { fontFamily: "Playfair", fontWeight: 500, fontStyle: "italic", color: FLORESTA },
@@ -119,7 +121,10 @@ function Refeicao({ r, d }: { r: RefeicaoPdf; d: DadosPdf }) {
           <View style={s.itemLinha}>
             <View style={s.colunaNome}><Text>{i.nome}</Text></View>
             {d.opcoes.kcalPorAlimento && <Text style={s.itemKcal}>{Math.round(i.kcal)} kcal</Text>}
-            <Text style={s.itemQtd}>{gramas(i.gramas)}</Text>
+            <View style={s.itemQtdCaixa}>
+              <Text style={s.itemQtd}>{i.quantidade.principal}</Text>
+              {i.quantidade.gramas && <Text style={s.itemQtdGramas}>{i.quantidade.gramas}</Text>}
+            </View>
           </View>
           {i.substitutos.length > 0 && (
             <Text style={s.substitutos}>

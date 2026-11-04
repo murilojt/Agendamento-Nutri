@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { somar, type Alimento, type ItemRefeicao } from "@/lib/nutricao";
 import type { Refeicao } from "./tipos";
 import { BuscaAlimento } from "./BuscaAlimento";
+import { QuantidadeItem } from "./QuantidadeItem";
+import type { Medida } from "@/lib/medidas";
 import { ChipsMacros, g1, kcal0 } from "./Macros";
 import { IcoArrastar, IcoCopiar, IcoEditar, IcoEstrela, IcoLixeira, IcoSeta } from "./Icones";
 
@@ -21,7 +23,10 @@ type Props = {
   duplicar: () => void;
   favoritar: () => void;
   adicionarAlimento: (a: Alimento) => void;
-  mudarQuantidade: (itemId: string, g: number) => void;
+  mudarQuantidade: (itemId: string, g: number, unidade?: Medida | null) => void;
+  medidasDo: (foodId: string | null) => (Medida & { id?: string })[];
+  medidasDisponiveis: boolean;
+  criarMedida: (foodId: string, m: Medida) => Promise<(Medida & { id?: string }) | null>;
   removerAlimento: (itemId: string) => void;
   contagemSubstitutos: (itemId: string) => number;
   abrirSubstitutos: (item: ItemRefeicao) => void;
@@ -138,7 +143,7 @@ export function LinhaRefeicao(p: Props) {
               {p.itens.map((i) => (
                 <li key={i.id} className="flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2 text-sm" style={borda}>
                   <span className="min-w-0 flex-1 basis-48 font-medium">{i.name}</span>
-                  <QuantidadeItem item={i} aoMudar={(g) => p.mudarQuantidade(i.id, g)} />
+                  <QuantidadeItem item={i} medidas={p.medidasDo(i.food_id)} disponivel={p.medidasDisponiveis} aoMudar={(g, un) => p.mudarQuantidade(i.id, g, un)} criarMedida={p.criarMedida} />
                   <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                     P {g1(i.protein_g)} · L {g1(i.fat_g)} · C {g1(i.carb_g)} · {kcal0(i.kcal)}
                   </span>
@@ -162,30 +167,5 @@ export function LinhaRefeicao(p: Props) {
         </div>
       )}
     </li>
-  );
-}
-
-function QuantidadeItem({ item, aoMudar }: { item: ItemRefeicao; aoMudar: (g: number) => void }) {
-  const [v, setV] = useState(String(item.quantity_g));
-  useEffect(() => setV(String(item.quantity_g)), [item.quantity_g]);
-  const confirmar = () => {
-    const n = Number(v.replace(",", "."));
-    if (n > 0) aoMudar(n);
-    else setV(String(item.quantity_g));
-  };
-  return (
-    <label className="flex items-center gap-1 text-xs font-semibold">
-      <span className="sr-only">Quantidade de {item.name} em gramas</span>
-      <input
-        inputMode="decimal"
-        value={v}
-        onChange={(e) => setV(e.target.value)}
-        onBlur={confirmar}
-        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-        className="w-20 rounded-lg border px-2 py-1 text-right text-sm"
-        style={{ borderColor: "var(--color-border)", background: "var(--color-surface)" }}
-      />
-      g
-    </label>
   );
 }

@@ -3,10 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { macrosDaPorcao, reescalar, somar, type Alimento, type ItemRefeicao, type Macros } from "@/lib/nutricao";
+import type { Medida } from "@/lib/medidas";
 import type { Anamnese, Dieta, Favorita, ItemFavorito, Paciente, Refeicao, Substituto } from "./tipos";
 
 const CAMPOS_SUBST = "id, item_id, food_id, name, quantity_g, kcal, protein_g, fat_g, carb_g, fiber_g, position";
 const CAMPOS_ITEM = "id, meal_id, food_id, name, quantity_g, kcal, protein_g, fat_g, carb_g, fiber_g, position";
+const CAMPOS_ITEM_U = `${CAMPOS_ITEM}, unit_name, unit_plural, unit_grams, unit_qty`;
 const num = (v: unknown) => (v == null ? 0 : Number(v));
 
 /** Normaliza números que o PostgREST pode devolver como texto (colunas numeric). */
@@ -14,6 +16,8 @@ const item = (r: Record<string, unknown>): ItemRefeicao => ({
   id: String(r.id), meal_id: String(r.meal_id), food_id: (r.food_id as string | null) ?? null, name: String(r.name),
   quantity_g: num(r.quantity_g), kcal: num(r.kcal), protein_g: num(r.protein_g), fat_g: num(r.fat_g), carb_g: num(r.carb_g),
   fiber_g: num(r.fiber_g), position: num(r.position),
+  unit_name: (r.unit_name as string | null | undefined) ?? null, unit_plural: (r.unit_plural as string | null | undefined) ?? null,
+  unit_grams: r.unit_grams == null ? null : Number(r.unit_grams), unit_qty: r.unit_qty == null ? null : Number(r.unit_qty),
 });
 const substituto = (r: Record<string, unknown>): Substituto => ({
   id: String(r.id), item_id: String(r.item_id), food_id: (r.food_id as string | null) ?? null, name: String(r.name),
@@ -35,6 +39,10 @@ export function useDieta(patientId: string) {
   const [substitutos, setSubstitutos] = useState<Substituto[]>([]);
   // false quando o patch SQL 11 ainda não foi aplicado
   const [substitutosOk, setSubstitutosOk] = useState(true);
+  // medidas caseiras: false quando o patch SQL 15 ainda não foi aplicado
+  const [unidadesOk, setUnidadesOk] = useState(true);
+  const [medidas, setMedidas] = useState<Map<string, (Medida & { id: string })[]>>(new Map());
+  const [medidasOk, setMedidasOk] = useState(true);
   const [alimentos, setAlimentos] = useState<Alimento[]>([]);
   const [uso, setUso] = useState<Map<string, number>>(new Map());
   const [favoritas, setFavoritas] = useState<Favorita[]>([]);
@@ -53,7 +61,12 @@ export function useDieta(patientId: string) {
     const lista: Refeicao[] = (ref ?? []).map((m) => ({ ...m, position: num(m.position) }));
     setRefeicoes(lista);
     if (lista.length === 0) return setItens([]);
-    const { data: its, error: e2 } = await supabase.from("meal_items").select(CAMPOS_ITEM).in("meal_id", lista.map((m) => m.id)).order("position", { ascending: true });
+    const comUnidades = await supabase.from("meal_items").select(CAMPOS_ITEM_U).in("meal_id", lista.map((m) => m.id)).order("position", { ascending: true });
+    // Sem o patch SQL 15 as colunas de medida caseira não existem: lê de novo sem elas
+    setUnidadesOk(!comUnidades.error);
+    const lido = comUnidades.error ? await supabase.from("meal_items").select(CAMPOS_ITEM).in("meal_id", lista.map((m) => m.id)).order("position", { ascending: true }) : comUnidades;
+    const its = lido.data as unknown as Record<string, unknown>[] | null;
+    const e2 = lido.error;
     if (e2) throw e2;
     const lidos = (its ?? []).map(item);
     setItens(lidos);
@@ -105,6 +118,13 @@ export function useDieta(patientId: string) {
           if ((a?.length ?? 0) < 1000) break;
         }
         if (!cancelado) setAlimentos(todos);
+
+        // Medidas caseiras de cada alimento (patch SQL 15); sem a tabela, só se usa gramas
+        const { data: med, error: medErro } = await supabase.from("food_measures").select("id, food_id, name, plural, grams").limit(20000);
+        setMedidasOk(!medErro);
+        const porAlimento = new Map<string, (Medida & { id: string })[]>();
+        for (const m of med ?? []) porAlimento.set(m.food_id, [...(porAlimento.get(m.food_id) ?? []), { id: m.id, name: m.name, plural: m.plural ?? null, grams: Number(m.grams) }]);
+        if (!cancelado) setMedidas(porAlimento);
 
         // Quantas vezes cada alimento já foi usado nas dietas (os mais usados aparecem primeiro na busca)
         const { data: usados } = await supabase.from("meal_items").select("food_id").order("created_at", { ascending: false }).limit(5000);
@@ -177,12 +197,16 @@ export function useDieta(patientId: string) {
     return { ...data, position: num(data.position) } as Refeicao;
   };
 
-  const inserirItens = async (mealId: string, lista: (Macros & { food_id: string | null; name: string; quantity_g: number })[]) => {
+  const inserirItens = async (mealId: string, lista: (Macros & { food_id: string | null; name: string; quantity_g: number } & Partial<Pick<ItemRefeicao, "unit_name" | "unit_plural" | "unit_grams" | "unit_qty">>)[]) => {
     if (lista.length === 0) return [];
-    const linhas = lista.map((l, i) => ({ meal_id: mealId, food_id: l.food_id, name: l.name, quantity_g: l.quantity_g, kcal: l.kcal, protein_g: l.protein_g, fat_g: l.fat_g, carb_g: l.carb_g, fiber_g: l.fiber_g, position: i }));
-    const { data, error } = await supabase.from("meal_items").insert(linhas).select(CAMPOS_ITEM);
+    const linhas = lista.map((l, i) => ({
+      meal_id: mealId, food_id: l.food_id, name: l.name, quantity_g: l.quantity_g, kcal: l.kcal, protein_g: l.protein_g, fat_g: l.fat_g, carb_g: l.carb_g, fiber_g: l.fiber_g, position: i,
+      // a medida caseira acompanha ao duplicar a refeição (só se o patch SQL 15 existir)
+      ...(unidadesOk ? { unit_name: l.unit_name ?? null, unit_plural: l.unit_plural ?? null, unit_grams: l.unit_grams ?? null, unit_qty: l.unit_qty ?? null } : {}),
+    }));
+    const { data, error } = await supabase.from("meal_items").insert(linhas).select(unidadesOk ? CAMPOS_ITEM_U : CAMPOS_ITEM);
     if (error) return falhou("Não foi possível salvar os alimentos.", error), [];
-    return (data ?? []).map(item);
+    return (data ?? []).map((r) => item(r as unknown as Record<string, unknown>));
   };
 
   const novaRefeicao = async () => {
@@ -246,10 +270,22 @@ export function useDieta(patientId: string) {
     return novo?.id ?? null;
   };
 
-  const mudarQuantidade = async (itemId: string, gramas: number) => {
+  /**
+   * Muda a quantidade (sempre em gramas) e, opcionalmente, a medida caseira em que ela é mostrada.
+   * `unidade`: undefined = mantém a medida atual (ajustando a quantidade dela); null = volta para gramas;
+   * objeto = passa a mostrar nessa medida.
+   */
+  const mudarQuantidade = async (itemId: string, gramas: number, unidade?: Medida | null) => {
     const atual = itens.find((i) => i.id === itemId);
-    if (!atual || !(gramas > 0) || gramas === atual.quantity_g) return;
-    const novos = { quantity_g: gramas, ...reescalar(atual, gramas) };
+    if (!atual || !(gramas > 0)) return;
+    const medida: Medida | null | undefined = unidade !== undefined ? unidade : atual.unit_name && atual.unit_grams ? { name: atual.unit_name, plural: atual.unit_plural ?? null, grams: atual.unit_grams } : null;
+    const unidadeMudou = unidade !== undefined && (unidade?.name ?? null) !== (atual.unit_name ?? null);
+    const qtdUnidade = medida ? Math.round((gramas / medida.grams + Number.EPSILON) * 100) / 100 : null;
+    if (gramas === atual.quantity_g && !unidadeMudou && qtdUnidade === (atual.unit_qty ?? null)) return;
+    const novos = {
+      quantity_g: gramas, ...reescalar(atual, gramas),
+      ...(unidadesOk ? { unit_name: medida?.name ?? null, unit_plural: medida?.plural ?? null, unit_grams: medida?.grams ?? null, unit_qty: qtdUnidade } : {}),
+    };
     const anterior = itens;
     setItens((x) => x.map((i) => (i.id === itemId ? { ...i, ...novos } : i)));
     const { error } = await supabase.from("meal_items").update(novos).eq("id", itemId);
@@ -257,6 +293,18 @@ export function useDieta(patientId: string) {
       setItens(anterior);
       falhou("Não foi possível salvar a quantidade.", error);
     }
+  };
+
+  /** Cadastra uma medida caseira para um alimento do banco (fica disponível em todas as dietas). */
+  const criarMedida = async (foodId: string, m: Medida): Promise<(Medida & { id: string }) | null> => {
+    const { data, error } = await supabase.from("food_measures").insert({ food_id: foodId, name: m.name, plural: m.plural, grams: m.grams }).select("id, name, plural, grams").single();
+    if (error || !data) {
+      falhou(error?.code === "23505" ? "Esse alimento já tem uma medida com esse nome." : "Não foi possível salvar a medida. Confirme que o patch SQL 15 foi aplicado no Supabase.", error);
+      return null;
+    }
+    const nova = { id: data.id as string, name: data.name as string, plural: (data.plural as string | null) ?? null, grams: Number(data.grams) };
+    setMedidas((x) => new Map(x).set(foodId, [...(x.get(foodId) ?? []), nova]));
+    return nova;
   };
 
   const removerAlimento = async (itemId: string) => {
@@ -336,8 +384,8 @@ export function useDieta(patientId: string) {
   };
 
   return {
-    paciente, dieta, refeicoes, itens, itensPorRefeicao, substitutos, substitutosOk, alimentos, uso, favoritas, totalDia, massaTotal, carregando, erroGeral, aviso, limparAviso: () => setAviso(null),
+    paciente, dieta, refeicoes, itens, itensPorRefeicao, substitutos, substitutosOk, medidas, medidasDisponiveis: unidadesOk && medidasOk, alimentos, uso, favoritas, totalDia, massaTotal, carregando, erroGeral, aviso, limparAviso: () => setAviso(null),
     criarDieta, salvarDieta, salvarPaciente, novaRefeicao, atualizarRefeicao, removerRefeicao, reordenar, ordenarPorHorario, duplicarRefeicao,
-    adicionarAlimento, mudarQuantidade, removerAlimento, adicionarSubstituto, mudarQuantidadeSubstituto, removerSubstituto, favoritar, usarFavorita, apagarFavorita, lerAnamnese, salvarAnamnese,
+    adicionarAlimento, mudarQuantidade, criarMedida, removerAlimento, adicionarSubstituto, mudarQuantidadeSubstituto, removerSubstituto, favoritar, usarFavorita, apagarFavorita, lerAnamnese, salvarAnamnese,
   };
 }

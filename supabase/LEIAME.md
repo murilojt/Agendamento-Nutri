@@ -15,8 +15,9 @@ Rode os scripts **nesta ordem exata** no SQL Editor do Supabase (cada um é incr
 11. `12-evolucao-do-paciente.sql`: peso e medidas do paciente ao longo do tempo (botão **Evolução** na ficha e gráfico na área do paciente). Sem ele, o botão abre um aviso pedindo para rodar o script.
 12. `13-trocar-senha-no-primeiro-acesso.sql`: permite exigir que o paciente troque a senha provisória no próximo acesso. Sem ele, a nutricionista ainda redefine a senha, só que a troca não é obrigatória.
 13. `14-paciente-le-rodape-da-nutricionista.sql` (**precisa do 09 rodado antes**): deixa o paciente baixar o PDF da própria dieta com o rodapé e a assinatura da nutricionista dele. Sem ele, o PDF do paciente sai com o rodapé padrão e sem assinatura.
-14. `07-alimentos-de-referencia.sql` (**opcional**, pode rodar em qualquer ponto depois do 06): 30 alimentos com valores **aproximados**, só para testar. Para uso real, importe a TACO em `/admin/alimentos` e apague estes.
+14. `15-medidas-caseiras.sql` (precisa do 06): medidas caseiras (colher de sopa, unidade, fatia...) além de gramas na dieta. Sem ele, tudo continua em gramas.
+15. `07-alimentos-de-referencia.sql` (**opcional**, pode rodar em qualquer ponto depois do 06): 30 alimentos com valores **aproximados**, só para testar. Para uso real, importe a TACO em `/admin/alimentos` e apague estes.
 
-Instalação nova: rode todos. Banco que já tinha 01 a 04 (do app e do painel antigos): rode o 05, o 06 e, se quiser testar, o 07. Banco que já está no ar com o 05: rode o 06, o 08, o 09, o 10, o 11, o 12, o 13 e o 14 (e o 07, se quiser testar).
+Instalação nova: rode todos. Banco que já tinha 01 a 04 (do app e do painel antigos): rode o 05, o 06 e, se quiser testar, o 07. Banco que já está no ar com o 05: rode o 06, o 08, o 09, o 10, o 11, o 12, o 13, o 14 e o 15 (e o 07, se quiser testar).
 
 **Dados de teste (opcional):** `seed-paciente-de-teste.sql` cria uma dieta de exemplo, com substitutos, receitas e 3 medições de peso, para um paciente que você já tenha criado em `/admin/pacientes/novo`. Troque o e-mail na linha `v_email` antes de rodar.

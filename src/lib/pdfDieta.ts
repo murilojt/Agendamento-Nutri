@@ -4,6 +4,7 @@
  */
 import { assinaturaValida, dimensoesDaImagem, linhasDoRodape, medidasDaAssinatura, type ConfigRodape } from "./rodapePdf.ts";
 import { serie } from "./evolucao.ts";
+import { quantidadeParaMostrar } from "./medidas.ts";
 import { analisar, distribuicao, listaDeCompras, somar, type ItemRefeicao, type LinhaAnalise, type LinhaCompra, type Macros, type Protocolo } from "./nutricao.ts";
 
 export type OpcoesPdf = {
@@ -44,7 +45,7 @@ export type RefeicaoPdf = {
   nome: string;
   horario: string | null; // "07:30"
   notas: string | null;
-  itens: { nome: string; gramas: number; kcal: number; substitutos: { nome: string; gramas: number }[] }[];
+  itens: { nome: string; gramas: number; /** como mostrar a quantidade: medida caseira ("2 colheres de sopa") e, abaixo, as gramas */ quantidade: { principal: string; gramas: string | null }; kcal: number; substitutos: { nome: string; gramas: number }[] }[];
   total: Macros;
 };
 
@@ -117,6 +118,7 @@ export function montarDadosPdf(e: EntradaPdf): DadosPdf {
       itens: itens.map((i) => ({
         nome: i.name,
         gramas: i.quantity_g,
+        quantidade: quantidadeParaMostrar(i.quantity_g, i),
         kcal: i.kcal,
         substitutos: e.opcoes.substitutos
           ? (e.substitutos ?? []).filter((s) => s.item_id === i.id).sort((a, b) => a.position - b.position).map((s) => ({ nome: s.name, gramas: s.quantity_g }))

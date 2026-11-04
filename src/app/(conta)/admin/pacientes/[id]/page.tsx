@@ -181,6 +181,9 @@ export default function PacientePage() {
                   favoritar={() => d.favoritar(r.id)}
                   adicionarAlimento={(a) => d.adicionarAlimento(r.id, a)}
                   mudarQuantidade={d.mudarQuantidade}
+                  medidasDo={(foodId) => (foodId ? d.medidas.get(foodId) ?? [] : [])}
+                  medidasDisponiveis={d.medidasDisponiveis}
+                  criarMedida={d.criarMedida}
                   removerAlimento={d.removerAlimento}
                   contagemSubstitutos={(itemId) => d.substitutos.filter((s) => s.item_id === itemId).length}
                   abrirSubstitutos={(i: ItemRefeicao) => setItemSubstitutos(i.id)}

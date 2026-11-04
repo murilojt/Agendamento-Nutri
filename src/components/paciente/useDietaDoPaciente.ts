@@ -49,10 +49,17 @@ export function useDietaDoPaciente() {
       setRefeicoes(refs);
 
       if (refs.length === 0) { setItens([]); setSubstitutos([]); return; }
-      const { data: its, error: iErro } = await supabase.from("meal_items")
-        .select("id, meal_id, food_id, name, quantity_g, kcal, protein_g, fat_g, carb_g, fiber_g, position").in("meal_id", refs.map((m) => m.id)).order("position", { ascending: true });
-      if (iErro) throw iErro;
-      const lidos: ItemRefeicao[] = (its ?? []).map((i) => ({ id: String(i.id), meal_id: String(i.meal_id), food_id: i.food_id ?? null, name: String(i.name), quantity_g: n(i.quantity_g), kcal: n(i.kcal), protein_g: n(i.protein_g), fat_g: n(i.fat_g), carb_g: n(i.carb_g), fiber_g: n(i.fiber_g), position: n(i.position) }));
+      const base = "id, meal_id, food_id, name, quantity_g, kcal, protein_g, fat_g, carb_g, fiber_g, position";
+      const comUnidades = await supabase.from("meal_items").select(`${base}, unit_name, unit_plural, unit_grams, unit_qty`).in("meal_id", refs.map((m) => m.id)).order("position", { ascending: true });
+      // Sem o patch SQL 15 não há medidas caseiras: lê só gramas
+      const lidoItens = comUnidades.error ? await supabase.from("meal_items").select(base).in("meal_id", refs.map((m) => m.id)).order("position", { ascending: true }) : comUnidades;
+      if (lidoItens.error) throw lidoItens.error;
+      const its = lidoItens.data as unknown as Record<string, unknown>[] | null;
+      const lidos: ItemRefeicao[] = (its ?? []).map((i) => ({
+        id: String(i.id), meal_id: String(i.meal_id), food_id: (i.food_id as string | null) ?? null, name: String(i.name), quantity_g: n(i.quantity_g), kcal: n(i.kcal), protein_g: n(i.protein_g), fat_g: n(i.fat_g), carb_g: n(i.carb_g), fiber_g: n(i.fiber_g), position: n(i.position),
+        unit_name: (i.unit_name as string | null | undefined) ?? null, unit_plural: (i.unit_plural as string | null | undefined) ?? null,
+        unit_grams: i.unit_grams == null ? null : Number(i.unit_grams), unit_qty: i.unit_qty == null ? null : Number(i.unit_qty),
+      }));
       setItens(lidos);
 
       // Substitutos (patch SQL 11) e medições (patch SQL 12): se faltarem, só não aparecem

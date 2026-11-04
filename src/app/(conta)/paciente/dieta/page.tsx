@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Carregando } from "@/components/ui/Carregando";
 import { ErrorText } from "@/components/ui/ErrorText";
+import { quantidadeParaMostrar } from "@/lib/medidas";
 import { somar } from "@/lib/nutricao";
 import { OPCOES_PADRAO } from "@/lib/pdfDieta.ts";
 import { carregarConfigRodapeDe } from "@/lib/configuracoesNutri";
@@ -125,7 +126,12 @@ export default function DietaPage() {
                                   </span>
                                 )}
                               </span>
-                              <span className="shrink-0" style={suave}>{g(i.quantity_g)}</span>
+                              <span className="shrink-0 text-right" style={suave}>
+                                {(() => {
+                                  const q = quantidadeParaMostrar(i.quantity_g, i);
+                                  return q.gramas ? (<>{q.principal}<span className="block text-xs">{q.gramas}</span></>) : q.principal;
+                                })()}
+                              </span>
                             </li>
                           );
                         })}

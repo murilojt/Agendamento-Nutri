@@ -15,6 +15,11 @@ export type ItemRefeicao = Macros & {
   name: string;
   quantity_g: number;
   position: number;
+  /** Medida caseira em que o item foi prescrito (opcional; quantity_g continua valendo para os cálculos) */
+  unit_name?: string | null;
+  unit_plural?: string | null;
+  unit_grams?: number | null;
+  unit_qty?: number | null;
 };
 
 export const ZERO: Macros = { kcal: 0, protein_g: 0, fat_g: 0, carb_g: 0, fiber_g: 0 };

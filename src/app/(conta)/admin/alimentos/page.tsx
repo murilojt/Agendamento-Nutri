@@ -9,6 +9,7 @@ import { Carregando } from "@/components/ui/Carregando";
 import { ErrorText } from "@/components/ui/ErrorText";
 import { TextField } from "@/components/ui/TextField";
 import { Modal } from "@/components/dieta/Modal";
+import { MedidasDoAlimento } from "@/components/dieta/MedidasDoAlimento";
 
 const num = (v: unknown) => (v == null ? 0 : Number(v));
 type Form = { id: string | null; name: string; kcal: string; protein_g: string; fat_g: string; carb_g: string; fiber_g: string };
@@ -364,6 +365,7 @@ export default function AlimentosPage() {
           <ErrorText>{erroForm}</ErrorText>
           <Button type="submit">Salvar</Button>
         </form>
+        {form?.id && <MedidasDoAlimento foodId={form.id} />}
       </Modal>
     </div>
   );
