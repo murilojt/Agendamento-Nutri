@@ -18,3 +18,5 @@ Rode os scripts **nesta ordem exata** no SQL Editor do Supabase (cada um é incr
 14. `07-alimentos-de-referencia.sql` (**opcional**, pode rodar em qualquer ponto depois do 06): 30 alimentos com valores **aproximados**, só para testar. Para uso real, importe a TACO em `/admin/alimentos` e apague estes.
 
 Instalação nova: rode todos. Banco que já tinha 01 a 04 (do app e do painel antigos): rode o 05, o 06 e, se quiser testar, o 07. Banco que já está no ar com o 05: rode o 06, o 08, o 09, o 10, o 11, o 12, o 13 e o 14 (e o 07, se quiser testar).
+
+**Dados de teste (opcional):** `seed-paciente-de-teste.sql` cria uma dieta de exemplo, com substitutos, receitas e 3 medições de peso, para um paciente que você já tenha criado em `/admin/pacientes/novo`. Troque o e-mail na linha `v_email` antes de rodar.
