@@ -1,8 +1,29 @@
 import Link from "next/link";
 import { Topo } from "@/components/Topo";
+import { Depoimentos, type Depoimento } from "@/components/Depoimentos";
 
 // Textos fictícios: troque pelos dados reais da clínica.
 const nome = process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Ayllus Nutrição";
+
+// Depoimentos reais de pacientes (identificados só pelas iniciais). Texto mantido como enviado.
+const depoimentos: Depoimento[] = [
+  {
+    autor: "C.M",
+    texto: "Passo com a nutricionista Mariana, ela é muito atenciosa, preocupada e sempre adequa a dieta para o que mais gostamos e podemos comer. Muito prestativa, não apenas com a alimentação mas a saúde como um todo, só tenho que parabenizar pelo trabalho maravilhoso. Tenho tido bons resultados e aprendi a me alimentar melhor com ela. Sempre me deixa a vontade para tirar dúvidas, sempre com opções disponíveis. Tem me ajudado muito. Além de tudo isso, tem muito conhecimento e sempre atualizado, trazendo novidades e ótimas opções para o paciente. Sempre fez e faz o melhor pelo paciente.",
+  },
+  {
+    autor: "P.A",
+    texto: "Comecei a passar em consultas com a Mari Fernandes, foi a melhor consulta com nutricionista que eu já tive! Ela me mostrou que dieta não precisa ser uma coisa absurda e restritiva, ela me fez enxergar a nutrição com outros olhos e eu gostei tanto que já virou um habito na minha rotina, e a melhor parte são os resultados que td isso gera.",
+  },
+  {
+    autor: "L.A",
+    texto: "Pela primeira vez na vida, uma profissional olhou nos meus olhos e se importou! Eu passei mal durante anos sem saber o que eu tinha e ela, na primeira consulta, me ouviu e foi assertiva!!!\nSó com a dieta dela eu já senti a diferença: ela pergunta como vc come e ADAPTA uma dieta correta na sua realidade!\nSério. Eu fiz questão de avaliar porque a Dra Mari não é só a melhor nutri, ela é um achado e eu serei ETERNAMENTE GRATA!!!!!!!",
+  },
+  {
+    autor: "E.S",
+    texto: "É uma profissional muito humanizada e desenvolve junto comigo um tratamento multidisciplinar, que vai muito além de contar calorias! Tudo é levado em consideração, sua saúde, seu emocional, seus comportamentos e seu estilo de vida. Você sai do consultório com uma dieta que se adequa a sua rotina, suplementação de acordo com as necessidades e orientações que te ajudam a alcançar seu objetivo.",
+  },
+];
 
 const especialidades = ["Emagrecimento saudável", "Reeducação alimentar", "Nutrição esportiva", "Saúde intestinal", "Gestação e pós-parto"];
 
@@ -177,11 +198,10 @@ export default function Inicio() {
 
       </div>
       <main>
-        <figure className="depoimento">
-          <span className="estrelas" aria-label="5 estrelas">★★★★★</span>
-          <blockquote>“Saí da primeira consulta com um plano que eu consigo seguir de verdade.”</blockquote>
-          <figcaption>Paciente fictícia, 34 anos</figcaption>
-        </figure>
+        <section className="secao depoimentos-secao" aria-labelledby="depoimentos-titulo">
+          <h2 id="depoimentos-titulo">Depoimentos</h2>
+          <Depoimentos itens={depoimentos} />
+        </section>
 
         <section className="secao contato">
           <span className="rotulo">Contato</span>

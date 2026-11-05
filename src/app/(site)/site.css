@@ -132,10 +132,23 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .passos h3 { font-size: clamp(1.35rem, 2.2vw, 1.6rem); line-height: 1.2; }
 .passos p { color: var(--tinta-suave); }
 
-.depoimento { margin: 0; background: var(--profundo); color: var(--sobre-profundo); border-radius: var(--raio-xl); padding: 3rem 2rem; text-align: center; display: grid; gap: 1.25rem; justify-items: center; }
-.depoimento .estrelas { color: var(--gema); letter-spacing: 0.2rem; font-size: 1.25rem; }
-.depoimento blockquote { margin: 0; max-width: 36rem; font-family: var(--fonte-titulo); font-size: clamp(1.5rem, 3.5vw, 2.25rem); line-height: 1.25; }
-.depoimento figcaption { color: var(--sobre-profundo-suave); font-size: 0.9rem; }
+/* Carrossel de depoimentos */
+.depoimentos { position: relative; background: var(--profundo); color: var(--sobre-profundo); border-radius: var(--raio-xl); padding: clamp(1.75rem, 4vw, 3rem) clamp(1.25rem, 4vw, 3rem) 1.5rem; touch-action: pan-y; }
+.depoimentos-palco { display: grid; }
+.depoimento-slide { grid-area: 1 / 1; margin: 0; display: grid; gap: 1rem; justify-items: center; text-align: center; align-content: center; opacity: 0; visibility: hidden; transition: opacity 0.45s ease, visibility 0.45s; }
+.depoimento-slide.ativo { opacity: 1; visibility: visible; }
+.depoimento-aspas { font-family: var(--fonte-titulo); font-size: 4rem; line-height: 0.6; color: var(--gema); height: 1.6rem; }
+.depoimento-slide blockquote { margin: 0; max-width: 46rem; font-family: var(--fonte-titulo); font-size: clamp(1.1rem, 2.1vw, 1.4rem); line-height: 1.5; white-space: pre-line; }
+.depoimento-slide figcaption { color: var(--gema); font-size: 1rem; font-weight: 600; letter-spacing: 0.12em; }
+.depoimentos-controles { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1.5rem; }
+.depoimentos-seta { width: 2.75rem; height: 2.75rem; border-radius: 50%; border: 1.5px solid var(--gema); background: none; color: var(--gema); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.depoimentos-seta:hover { background: var(--gema); color: var(--sobre-gema); }
+.depoimentos-seta svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.depoimentos-bolinhas { display: flex; gap: 0.35rem; }
+.depoimentos-bolinhas button { width: 1.5rem; height: 1.5rem; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; }
+.depoimentos-bolinhas button::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--sobre-profundo-suave); opacity: 0.5; transition: width 0.25s, opacity 0.25s, background 0.25s; }
+.depoimentos-bolinhas button.ativa::before { width: 1.5rem; border-radius: 999px; background: var(--gema); opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .depoimento-slide { transition: none; } }
 
 .contato { padding-bottom: 3rem; }
 .contato p { color: var(--tinta-suave); }
