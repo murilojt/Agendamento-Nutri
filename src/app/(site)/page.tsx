@@ -73,13 +73,13 @@ export default function Inicio() {
         <section className="secao sobre">
           <span className="rotulo">Sobre</span>
           <p className="sobre-missao">
-            Minha missão é ajudar pessoas a construir uma relação mais tranquila com a alimentação e cuidar da saúde com base em evidências científicas. Respeito a história, as condições de vida e as necessidades de cada pessoa, valorizando o direito à alimentação adequada, a autonomia nas escolhas.
+            Minha missão é ajudar pessoas a construir uma relação mais tranquila com a alimentação e cuidar da saúde com base em evidências científicas. Respeito a história, as condições de vida e as necessidades de cada pessoa, valorizando o direito à alimentação adequada e a autonomia nas escolhas.
           </p>
           <h2>Prazer, sou <em>Mariana</em>, a nutricionista por trás da Ayllus.</h2>
           <div className="sobre-corpo">
             <p>Sempre quis que meu trabalho pudesse trazer alívio, conforto e leveza para a vida das pessoas. Na nutrição, encontrei um jeito de fazer isso. Ao longo dos anos de atendimento, uma das experiências mais especiais foi acompanhar de perto as mudanças que cada pessoa construiu.</p>
             <p>Acredito em uma nutrição que começa pela escuta: antes de pensar em um plano alimentar, quero conhecer sua história, sua rotina, suas dificuldades e o que você espera do acompanhamento.</p>
-            <p>Sou nutricionista formada pelo Centro Universitário São Camilo e fiz especialização em nutrição clínica pelo Hospital das Clínicas da Faculdade de Medicina da USP. Também tenho pós graduação na mesma área pela VP. Em cerca de três anos de consultório, cheguei a acompanhar quase 150 pessoas por mês. Essa experiência me apresentou histórias muito diferentes e reforçou uma convicção: cada paciente precisa ser ouvido como uma pessoa, não tratado como mais um caso.</p>
+            <p>Sou nutricionista formada pelo Centro Universitário São Camilo e fiz especialização em nutrição clínica pelo Hospital das Clínicas da Faculdade de Medicina da USP. Também tenho pós-graduação na mesma área pela VP. Em cerca de três anos de consultório, cheguei a acompanhar quase 150 pessoas por mês. Essa experiência me apresentou histórias muito diferentes e reforçou uma convicção: cada paciente precisa ser ouvido como uma pessoa, não tratado como mais um caso.</p>
           </div>
           <p className="sobre-fecho">Vamos encontrar um caminho que faça sentido para você?</p>
           <Link href="/agendar" className="botao">Agendar minha consulta →</Link>
