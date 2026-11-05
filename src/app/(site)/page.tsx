@@ -10,6 +10,7 @@ const passos = [
   { titulo: "Escolha o horário", texto: "Selecione a modalidade, o dia e o horário que melhor se adaptam à sua rotina." },
   { titulo: "Preencha seus dados", texto: "Informe seus dados para concluir o agendamento." },
   { titulo: "Questionário e orientações iniciais antes da primeira consulta", texto: "Você receberá, por e-mail ou WhatsApp, o questionário inicial e as informações para se preparar para a consulta." },
+  { titulo: "Pronto", texto: "É só aguardar a data para a consulta." },
 ];
 export default function Inicio() {
   return (
@@ -162,7 +163,7 @@ export default function Inicio() {
       <div className="faixa-clara">
         <section className="secao">
           <span className="rotulo">Como agendar</span>
-          <h2>Três passos, <em>um</em> horário</h2>
+          <h2>Quatro passos, <em>um</em> horário</h2>
           <ol className="passos">
             {passos.map((p) => (
               <li key={p.titulo}>

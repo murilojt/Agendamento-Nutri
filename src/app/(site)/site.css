@@ -125,7 +125,8 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .faixa-clara { background: var(--fundo-alt); }
 .faixa-clara > .secao { max-width: var(--largura); margin: 0 auto; padding-left: 1.25rem; padding-right: 1.25rem; }
 .passos { list-style: none; counter-reset: passo; padding: 0; margin: 1rem 0 0; display: grid; gap: 2rem; }
-@media (min-width: 760px) { .passos { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 640px) { .passos { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1000px) { .passos { grid-template-columns: repeat(4, 1fr); } }
 .passos li { counter-increment: passo; display: grid; gap: 0.6rem; border-top: 2px solid var(--tinta); padding-top: 1.25rem; align-content: start; }
 .passos li::before { content: "0" counter(passo); font-family: var(--fonte-titulo); font-size: 4.5rem; line-height: 1; color: var(--terracota); }
 .passos h3 { font-size: clamp(1.35rem, 2.2vw, 1.6rem); line-height: 1.2; }
