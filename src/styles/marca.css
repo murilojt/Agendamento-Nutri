@@ -26,6 +26,7 @@
   --sombra: 0 18px 40px -18px rgba(92, 30, 33, 0.35);
   --fonte-titulo: "Playfair Display", Georgia, "Times New Roman", serif;
   --fonte-texto: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --vinho-destaque: #5c1e21; /* vinho legível como cor de texto/linha (no tema escuro fica mais claro) */
   --largura: 1180px;
   --raio-lg: 28px;
   --raio-xl: 40px;
@@ -45,6 +46,7 @@
   --gema-suave: #3a2d1e;
   --terracota: #e0a08c;
   --profundo: #3a1316;
+  --vinho-destaque: #d9959b;
   --sobre-profundo: #f3e8da;
   --sobre-profundo-suave: #d2bcab;
   --erro: #f29a88;

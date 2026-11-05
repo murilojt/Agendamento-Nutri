@@ -135,7 +135,6 @@ export default function Inicio() {
               <div className="pilar-fuste">
                 <p>Investigamos sua saúde, seus sintomas, seus exames e sua alimentação. Organizamos refeições, planejamento, sono e exercicio físico para construir uma base de cuidado possível de manter.</p>
               </div>
-              <div className="pilar-base" aria-hidden="true" />
             </article>
             <article className="pilar pilar-mente">
               <div className="pilar-capitel">
@@ -146,7 +145,6 @@ export default function Inicio() {
                 <p>Olhamos para as dificuldades que atravessam a alimentação: estresse, ansiedade, emoções, falta de tempo e sua relação com a comida e com o corpo.</p>
                 <p>Conforme suas necessidades, utilizamos ferramentas de educação nutricional e comportamento alimentar para compreender padrões e construir estratégias para situações do cotidiano.</p>
               </div>
-              <div className="pilar-base" aria-hidden="true" />
             </article>
             <article className="pilar pilar-ser">
               <div className="pilar-capitel">
@@ -157,7 +155,6 @@ export default function Inicio() {
                 <p>Ao longo do processo, você aprende a reconhecer o que funciona para você, fazer ajustes com flexibilidade e lidar com mudanças na rotina.</p>
                 <p>O objetivo é desenvolver autonomia para cuidar da alimentação e sustentar suas conquistas, com espaço para seus gostos, seus vínculos e seus momentos de prazer.</p>
               </div>
-              <div className="pilar-base" aria-hidden="true" />
             </article>
           </div>
         </section>
