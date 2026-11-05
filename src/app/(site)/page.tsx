@@ -102,8 +102,8 @@ export default function Inicio() {
               <div className="atend-passo">
                 <span className="atend-num" aria-hidden="true">3</span>
                 <h4>Após a consulta</h4>
-                <p>Ficamos em contato pelo whatsapp. Pode contar comigo para responder dúvidas e te ajudar caso haja dificuldades na execução do plano que traçamos. O prazo de resposta é de até dois dias úteis.</p>
-                <p>Após a consulta, você também poderá avaliar o atendimento por meio de um questionário, com opção de resposta anônima</p>
+                <p>Ficamos em contato pelo WhatsApp. Pode contar comigo para responder dúvidas e te ajudar caso haja dificuldades na execução do plano que traçamos. O prazo de resposta é de até dois dias úteis.</p>
+                <p>Após a consulta, você também poderá avaliar o atendimento por meio de um questionário, com opção de resposta anônima.</p>
               </div>
             </div>
           </article>
