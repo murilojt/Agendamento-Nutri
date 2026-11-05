@@ -25,6 +25,12 @@ const depoimentos: Depoimento[] = [
   },
 ];
 
+// Abre o Google Maps já com o endereço como destino: quem clica só informa de onde está saindo para ver a rota.
+const ENDERECO_MAPA = "Rua Itapicuru, 369, Perdizes, São Paulo - SP, 05005-020";
+const LINK_ROTA = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(ENDERECO_MAPA)}`;
+const WHATSAPP = { exibir: "(11) 91365-7788", link: "https://wa.me/5511913657788" };
+const EMAIL = "clinica.ayllus@gmail.com";
+
 const especialidades = ["Emagrecimento saudável", "Reeducação alimentar", "Nutrição esportiva", "Saúde intestinal", "Gestação e pós-parto"];
 
 const passos = [
@@ -205,11 +211,32 @@ export default function Inicio() {
 
         <section className="secao contato">
           <span className="rotulo">Contato</span>
-          <h2>Onde <em>estamos</em></h2>
-          <p>Rua Exemplo, 123, sala 4, Centro, Serra Negra (SP)</p>
-          <p>WhatsApp (19) 90000-0000</p>
-          <p>contato@exemplo.com.br</p>
-          <p>Segunda a sexta, 8h às 18h. Sábados, 8h às 12h.</p>
+          <div className="contato-grade">
+            <div className="contato-bloco">
+              <h2>Onde <em>estamos</em></h2>
+              <address>
+                Edifício Perdizes Trade Center<br />
+                Rua Itapicuru, 369 — Conjunto 1101<br />
+                Perdizes, São Paulo — SP<br />
+                CEP 05005-020
+              </address>
+              <a href={LINK_ROTA} target="_blank" rel="noopener noreferrer" className="botao botao-contorno botao-mapa">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z" /><circle cx="12" cy="9.5" r="2.5" /></svg>
+                Ver localização no mapa
+                <span className="sr-only"> (abre o Google Maps em uma nova aba)</span>
+              </a>
+            </div>
+            <div className="contato-bloco">
+              <h2>Horários de <em>atendimento</em></h2>
+              <p>Segunda a sexta, das 7h às 18h.</p>
+              <p>Sábados, das 7h às 14h.</p>
+            </div>
+            <div className="contato-bloco">
+              <h2>Fale com a <em>Ayllus</em></h2>
+              <p>WhatsApp: <a href={WHATSAPP.link} target="_blank" rel="noopener noreferrer">{WHATSAPP.exibir}</a></p>
+              <p>E-mail: <a href={`mailto:${EMAIL}`}>{EMAIL}</a></p>
+            </div>
+          </div>
         </section>
       </main>
       <footer className="rodape">
