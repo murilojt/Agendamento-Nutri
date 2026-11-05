@@ -49,6 +49,14 @@ export default function Inicio() {
             <div className="arco-selo c">cultivar o ser</div>
           </div>
         </section>
+
+        <section className="secao publico" aria-labelledby="publico-titulo">
+          <h2 id="publico-titulo">Um cuidado pensado para <em>você</em></h2>
+          <div className="colunas">
+            <p>Atendo adultos que desejam melhorar a alimentação, cuidar do peso e tratar condições como diabetes, colesterol e triglicérides elevados, doenças cardiovasculares e outras alterações metabólicas.</p>
+            <p>O acompanhamento também considera as dificuldades do dia a dia: falta de tempo, organização das refeições, dúvidas sobre o que comer e a relação com a comida e com o corpo. O ponto de partida é conhecer você e encontrar mudanças possíveis de colocar em prática.</p>
+          </div>
+        </section>
       </main>
 
       <div className="faixa" aria-hidden="true">

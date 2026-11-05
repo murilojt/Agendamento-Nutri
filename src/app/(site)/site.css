@@ -215,3 +215,4 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 @keyframes surgir { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
 @media (max-width: 350px) { .logo-isotipo { display: none; } .botao-pequeno { padding: 0 0.7rem; font-size: 0.8rem; } }
+.publico { padding-top: 1rem; }
