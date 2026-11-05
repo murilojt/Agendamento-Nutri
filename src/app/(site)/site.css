@@ -102,15 +102,20 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .colunas { display: grid; gap: 1.25rem; max-width: 70ch; color: var(--tinta-suave); }
 @media (min-width: 860px) { .colunas { grid-template-columns: 1fr 1fr; max-width: none; gap: 2.5rem; } }
 
-.atend-primeira { background: var(--folha); color: var(--sobre-folha); border-radius: var(--raio-lg); padding: clamp(1.5rem, 4vw, 2.5rem); display: grid; gap: 1.5rem; margin-top: 1rem; }
-.atend-primeira h3 { font-size: clamp(1.75rem, 3.4vw, 2.25rem); }
-.atend-passos { display: grid; gap: 1.75rem; }
-.atend-passo { display: grid; gap: 0.7rem; align-content: start; }
-.atend-passo h4 { font-family: var(--fonte-titulo); font-weight: 500; font-size: 1.35rem; margin: 0; }
+.atend-primeira { display: grid; gap: 1rem; margin-top: 1rem; }
+.atend-primeira h3 { font-size: clamp(1.6rem, 3vw, 2rem); }
+.atend-passos { display: grid; gap: 1rem; }
+.atend-passo { background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio-lg); padding: 1.5rem; display: grid; gap: 0.7rem; align-content: start; color: var(--tinta-suave); transition: transform 0.25s, box-shadow 0.25s; }
+.atend-passo:hover { transform: translateY(-3px); box-shadow: var(--sombra); }
+.atend-passo h4 { font-family: var(--fonte-titulo); font-weight: 500; font-size: 1.35rem; margin: 0; color: var(--tinta); }
 .atend-passo p, .atend-card p { margin: 0; }
-.atend-passo p { color: var(--sobre-folha); opacity: 0.92; font-size: 0.98rem; }
-.atend-num { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--sobre-folha); color: var(--folha); font-family: var(--fonte-titulo); font-size: 1.15rem; font-weight: 600; }
-@media (min-width: 900px) { .atend-passos { grid-template-columns: repeat(3, 1fr); gap: 2.25rem; } }
+.atend-passo p { font-size: 0.98rem; }
+.atend-num { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--folha); color: var(--sobre-folha); font-family: var(--fonte-titulo); font-size: 1.1rem; font-weight: 600; }
+/* No computador: "antes" e "após" empilhados à esquerda, "no dia" (o mais longo) à direita */
+@media (min-width: 900px) {
+  .atend-passos { grid-template-columns: 1fr 1.25fr; grid-template-areas: "a b" "c b"; align-items: start; }
+  .atend-passo.p1 { grid-area: a; } .atend-passo.p2 { grid-area: b; } .atend-passo.p3 { grid-area: c; }
+}
 .atend-outros { display: grid; gap: 1rem; }
 @media (min-width: 900px) { .atend-outros { grid-template-columns: 1fr 1fr; } }
 .atend-card { background: var(--superficie); border: 1px solid var(--linha); border-radius: var(--raio-lg); padding: clamp(1.5rem, 4vw, 2rem); display: grid; gap: 0.9rem; align-content: start; color: var(--tinta-suave); }
@@ -224,3 +229,9 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .sobre-corpo p, .sobre-fecho { margin: 0; }
 @media (min-width: 860px) { .sobre-corpo { display: block; column-count: 2; column-gap: 2.5rem; max-width: none; } .sobre-corpo p { margin-bottom: 1.1rem; } }
 .sobre-fecho { font-family: var(--fonte-titulo); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 1.9rem); color: var(--terracota); }
+
+.voltar-topo { position: fixed; right: 1rem; bottom: 1.25rem; z-index: 25; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0 1.1rem; border: 0; border-radius: 999px; background: var(--folha); color: var(--sobre-folha); font: inherit; font-size: 0.9rem; font-weight: 600; box-shadow: var(--sombra); cursor: pointer; opacity: 0; transform: translateY(0.75rem); pointer-events: none; transition: opacity 0.25s, transform 0.25s; }
+.voltar-topo.visivel { opacity: 1; transform: none; pointer-events: auto; }
+.voltar-topo svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 520px) { .voltar-topo { width: 3rem; padding: 0; justify-content: center; } .voltar-topo span { display: none; } }
+@media (prefers-reduced-motion: reduce) { .voltar-topo { transition: none; } }

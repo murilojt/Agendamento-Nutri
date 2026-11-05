@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { PaginaRaiz } from "@/components/PaginaRaiz";
+import { VoltarAoTopo } from "@/components/VoltarAoTopo";
 import "./site.css";
 
 const nome = process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Ayllus Nutrição";
@@ -12,5 +13,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#5C1E21" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <PaginaRaiz>{children}</PaginaRaiz>;
+  return (
+    <PaginaRaiz>
+      {children}
+      <VoltarAoTopo />
+    </PaginaRaiz>
+  );
 }
