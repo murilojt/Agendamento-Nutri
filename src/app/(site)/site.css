@@ -216,3 +216,8 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } html { scroll-behavior: auto; } }
 @media (max-width: 350px) { .logo-isotipo { display: none; } .botao-pequeno { padding: 0 0.7rem; font-size: 0.8rem; } }
 .publico { padding-top: 1rem; }
+.sobre-missao { font-family: var(--fonte-titulo); font-size: clamp(1.35rem, 2.6vw, 1.9rem); line-height: 1.4; max-width: 52rem; color: var(--tinta); margin: 0; }
+.sobre-corpo { display: grid; gap: 1.1rem; max-width: 70ch; color: var(--tinta-suave); }
+.sobre-corpo p, .sobre-fecho { margin: 0; }
+@media (min-width: 860px) { .sobre-corpo { display: block; column-count: 2; column-gap: 2.5rem; max-width: none; } .sobre-corpo p { margin-bottom: 1.1rem; } }
+.sobre-fecho { font-family: var(--fonte-titulo); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 1.9rem); color: var(--terracota); }

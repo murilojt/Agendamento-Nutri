@@ -72,17 +72,17 @@ export default function Inicio() {
       <main>
         <section className="secao sobre">
           <span className="rotulo">Sobre</span>
-          <h2>Cuidado <em>próximo</em>, sem julgamentos</h2>
-          <div className="colunas">
-            <p>
-              A {nome} nasceu para oferecer um atendimento próximo e sem julgamentos. Atendemos adultos que
-              querem mais disposição, controlar alguma condição de saúde ou simplesmente organizar a alimentação.
-            </p>
-            <p>
-              À frente dos atendimentos está a nutricionista Ana Exemplo (CRN-3 00000), com 10 anos de experiência
-              em nutrição clínica e comportamental.
-            </p>
+          <p className="sobre-missao">
+            Minha missão é ajudar pessoas a construir uma relação mais tranquila com a alimentação e cuidar da saúde com base em evidências científicas. Respeito a história, as condições de vida e as necessidades de cada pessoa, valorizando o direito à alimentação adequada, a autonomia nas escolhas.
+          </p>
+          <h2>Prazer, sou <em>Mariana</em>, a nutricionista por trás da Ayllus.</h2>
+          <div className="sobre-corpo">
+            <p>Sempre quis que meu trabalho pudesse trazer alívio, conforto e leveza para a vida das pessoas. Na nutrição, encontrei um jeito de fazer isso. Ao longo dos anos de atendimento, uma das experiências mais especiais foi acompanhar de perto as mudanças que cada pessoa construiu.</p>
+            <p>Acredito em uma nutrição que começa pela escuta: antes de pensar em um plano alimentar, quero conhecer sua história, sua rotina, suas dificuldades e o que você espera do acompanhamento.</p>
+            <p>Sou nutricionista formada pelo Centro Universitário São Camilo e fiz especialização em nutrição clínica pelo Hospital das Clínicas da Faculdade de Medicina da USP. Também tenho pós graduação na mesma área pela VP. Em cerca de três anos de consultório, cheguei a acompanhar quase 150 pessoas por mês. Essa experiência me apresentou histórias muito diferentes e reforçou uma convicção: cada paciente precisa ser ouvido como uma pessoa, não tratado como mais um caso.</p>
           </div>
+          <p className="sobre-fecho">Vamos encontrar um caminho que faça sentido para você?</p>
+          <Link href="/agendar" className="botao">Agendar minha consulta →</Link>
         </section>
 
         <section className="secao" id="atendimentos">
