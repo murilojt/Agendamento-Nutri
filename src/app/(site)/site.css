@@ -235,3 +235,16 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .voltar-topo svg { width: 1.1rem; height: 1.1rem; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 520px) { .voltar-topo { width: 3rem; padding: 0; justify-content: center; } .voltar-topo span { display: none; } }
 @media (prefers-reduced-motion: reduce) { .voltar-topo { transition: none; } }
+
+/* Cards de atendimentos na paleta Ayllus: damasco claro, vinho, areia, floresta e dourado */
+.atend-passo, .atend-card { border-width: 0; }
+.atend-passo.p1 { background: var(--gema-suave); color: var(--tinta-suave); }
+.atend-passo.p1 .atend-num { background: var(--profundo); color: var(--sobre-profundo); }
+.atend-passo.p2 { background: var(--profundo); color: var(--sobre-profundo); }
+.atend-passo.p2 h4 { color: var(--sobre-profundo); }
+.atend-passo.p2 .atend-num { background: var(--gema); color: var(--sobre-gema); }
+.atend-passo.p3 { background: var(--broto); color: var(--tinta-suave); }
+.atend-passo.p3 .atend-num { background: var(--folha); color: var(--sobre-folha); }
+.atend-card:not(.atend-online) { background: var(--folha); color: var(--sobre-folha); }
+.atend-card:not(.atend-online) h3 { color: var(--sobre-folha); }
+.atend-online { background: var(--superficie); border: 2px solid var(--gema); color: var(--tinta-suave); }
