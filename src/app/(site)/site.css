@@ -3,7 +3,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { overflow-x: clip; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; } /* âncoras (#atendimentos) não ficam escondidas atrás do cabeçalho fixo */
 body {
   background: var(--fundo);
   color: var(--tinta);
@@ -38,7 +38,7 @@ button, input { font: inherit; color: inherit; }
 .botao-secundario:hover { background: var(--broto); }
 
 /* Topo flutuante em pílula */
-.topo-area { position: sticky; top: 0; z-index: 20; padding: 1rem 1rem 0; }
+.topo-area { position: sticky; top: 0; z-index: 20; padding: 1rem 1rem 0.75rem; background: var(--fundo); } /* fundo sólido: o texto não aparece mais atrás/em volta do cabeçalho ao rolar */
 .topo {
   max-width: 1100px; margin: 0 auto; background: var(--profundo); border: 0;
   border-radius: 999px; padding: 0.55rem 0.55rem 0.55rem 1.5rem; box-shadow: var(--sombra);
