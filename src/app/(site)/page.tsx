@@ -87,23 +87,23 @@ export default function Inicio() {
             <h3>Primeira consulta</h3>
             <div className="atend-passos">
               <article className="atend-passo p1">
-                <span className="atend-num" aria-hidden="true">1</span>
-                <h4>Antes da consulta</h4>
-                <p>Depois do agendamento, você recebe as informações para se preparar: como funciona a consulta, quais exames trazer, orientações para a avaliação física, pagamento e como solicitar uma remarcação.</p>
+                <div className="atend-cab"><span className="atend-num" aria-hidden="true">1</span><h4>Antes da consulta</h4></div>
+                <div className="atend-texto"><p>Depois do agendamento, você recebe as informações para se preparar: como funciona a consulta, quais exames trazer, orientações para a avaliação física, pagamento e como solicitar uma remarcação.</p>
                 <p>Você também responde a um questionário para que eu conheça um pouco da sua saúde e dos seus objetivos antes de nos encontrarmos.</p>
+                </div>
               </article>
               <article className="atend-passo p2">
-                <span className="atend-num" aria-hidden="true">2</span>
-                <h4>No dia do atendimento</h4>
-                <p>Te recebo e começo pela conversa. Na primeira consulta, quero entender seus objetivos, sua rotina, as dificuldades com a alimentação e o que você já tentou fazer. É o seu momento de falar.</p>
+                <div className="atend-cab"><span className="atend-num" aria-hidden="true">2</span><h4>No dia do atendimento</h4></div>
+                <div className="atend-texto"><p>Te recebo e começo pela conversa. Na primeira consulta, quero entender seus objetivos, sua rotina, as dificuldades com a alimentação e o que você já tentou fazer. É o seu momento de falar.</p>
                 <p>Quando indicada, faço a avaliação física e a bioimpedância para acompanhar mudanças físicas ao longo do tempo. Essas medidas são ferramentas de avaliação. Também conversamos sobre sinais e sintomas que não aparecem nos números.</p>
                 <p>Juntos, organizamos sua alimentação e definimos metas para o próximo mês. O plano pode incluir refeições, compras, preparo de alimentos, sono, exercício físico e outras mudanças que façam sentido para a sua rotina. Não é preciso mudar tudo de uma vez.</p>
+                </div>
               </article>
               <article className="atend-passo p3">
-                <span className="atend-num" aria-hidden="true">3</span>
-                <h4>Após a consulta</h4>
-                <p>Ficamos em contato pelo WhatsApp. Pode contar comigo para responder dúvidas e te ajudar caso haja dificuldades na execução do plano que traçamos. O prazo de resposta é de até dois dias úteis.</p>
+                <div className="atend-cab"><span className="atend-num" aria-hidden="true">3</span><h4>Após a consulta</h4></div>
+                <div className="atend-texto"><p>Ficamos em contato pelo WhatsApp. Pode contar comigo para responder dúvidas e te ajudar caso haja dificuldades na execução do plano que traçamos. O prazo de resposta é de até dois dias úteis.</p>
                 <p>Após a consulta, você também poderá avaliar o atendimento por meio de um questionário, com opção de resposta anônima.</p>
+                </div>
               </article>
             </div>
           </div>

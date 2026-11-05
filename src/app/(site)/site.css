@@ -248,3 +248,17 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 .atend-card:not(.atend-online) { background: var(--folha); color: var(--sobre-folha); }
 .atend-card:not(.atend-online) h3 { color: var(--sobre-folha); }
 .atend-online { background: var(--superficie); border: 2px solid var(--gema); color: var(--tinta-suave); }
+
+/* Passos da primeira consulta em linha: título à esquerda, texto à direita (sem espaços vazios entre os cards) */
+.atend-passo { gap: 0.9rem; }
+.atend-cab { display: flex; align-items: center; gap: 0.9rem; }
+.atend-texto { display: grid; gap: 0.7rem; }
+.atend-passo .atend-texto p { margin: 0; }
+@media (min-width: 900px) {
+  .atend-passos { grid-template-columns: 1fr; grid-template-areas: none; }
+  .atend-passo.p1, .atend-passo.p2, .atend-passo.p3 { grid-area: auto; }
+  .atend-passo { grid-template-columns: 17rem 1fr; column-gap: 2.5rem; align-items: start; padding: 1.75rem 2rem; }
+  .atend-passo:hover { transform: none; }
+  .atend-cab { position: sticky; top: 6.5rem; }
+  .atend-passo h4 { font-size: 1.5rem; }
+}
