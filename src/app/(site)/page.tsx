@@ -4,12 +4,6 @@ import { Topo } from "@/components/Topo";
 // Textos fictícios: troque pelos dados reais da clínica.
 const nome = process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Ayllus Nutrição";
 
-const atendimentos = [
-  { titulo: "Primeira consulta", texto: "Avaliação completa: histórico, hábitos, exames e medidas. Você sai com um plano alimentar feito para a sua rotina.", duracao: "60 min" },
-  { titulo: "Retorno", texto: "Acompanhamento da evolução, ajustes no plano e novas metas para as próximas semanas.", duracao: "60 min" },
-  { titulo: "Consulta online", texto: "O mesmo cuidado da consulta presencial, por videochamada, de onde você estiver.", duracao: "60 min" },
-];
-
 const especialidades = ["Emagrecimento saudável", "Reeducação alimentar", "Nutrição esportiva", "Saúde intestinal", "Gestação e pós-parto"];
 
 const passos = [
@@ -87,16 +81,46 @@ export default function Inicio() {
 
         <section className="secao" id="atendimentos">
           <span className="rotulo">Atendimentos</span>
-          <h2>Do jeito que <em>você</em> precisa</h2>
-          <div className="atendimentos">
-            {atendimentos.map((a) => (
-              <article key={a.titulo} className="atendimento">
-                <h3>{a.titulo}</h3>
-                <p>{a.texto}</p>
-                <span>{a.duracao}</span>
-              </article>
-            ))}
+          <h2>Como funcionam meus <em>atendimentos</em>?</h2>
+
+          <article className="atend-primeira">
+            <h3>Primeira consulta</h3>
+            <div className="atend-passos">
+              <div className="atend-passo">
+                <span className="atend-num" aria-hidden="true">1</span>
+                <h4>Antes da consulta</h4>
+                <p>Depois do agendamento, você recebe as informações para se preparar: como funciona a consulta, quais exames trazer, orientações para a avaliação física, pagamento e como solicitar uma remarcação.</p>
+                <p>Você também responde a um questionário para que eu conheça um pouco da sua saúde e dos seus objetivos antes de nos encontrarmos.</p>
+              </div>
+              <div className="atend-passo">
+                <span className="atend-num" aria-hidden="true">2</span>
+                <h4>No dia do atendimento</h4>
+                <p>Te recebo e começo pela conversa. Na primeira consulta, quero entender seus objetivos, sua rotina, as dificuldades com a alimentação e o que você já tentou fazer. É o seu momento de falar.</p>
+                <p>Quando indicada, faço a avaliação física e a bioimpedância para acompanhar mudanças físicas ao longo do tempo. Essas medidas são ferramentas de avaliação. Também conversamos sobre sinais e sintomas que não aparecem nos números.</p>
+                <p>Juntos, organizamos sua alimentação e definimos metas para o próximo mês. O plano pode incluir refeições, compras, preparo de alimentos, sono, exercício físico e outras mudanças que façam sentido para a sua rotina. Não é preciso mudar tudo de uma vez.</p>
+              </div>
+              <div className="atend-passo">
+                <span className="atend-num" aria-hidden="true">3</span>
+                <h4>Após a consulta</h4>
+                <p>Ficamos em contato pelo whatsapp. Pode contar comigo para responder dúvidas e te ajudar caso haja dificuldades na execução do plano que traçamos. O prazo de resposta é de até dois dias úteis.</p>
+                <p>Após a consulta, você também poderá avaliar o atendimento por meio de um questionário, com opção de resposta anônima</p>
+              </div>
+            </div>
+          </article>
+
+          <div className="atend-outros">
+            <article className="atend-card">
+              <h3>Retornos</h3>
+              <p>Nas consultas de retorno, conversamos sobre sua evolução, reconhecemos suas conquistas e identificamos as dificuldades para colocar em prática as estratégias combinadas. A partir dessa troca, ajustamos o plano alimentar e definimos novas metas, respeitando sua rotina, suas necessidades e seu ritmo.</p>
+              <p>Quando indicado, reavaliamos sua composição corporal por meio da bioimpedância e da adipometria. Esse é um momento para esclarecer dúvidas e aprofundar seus conhecimentos sobre alimentação, ajudando você a fazer escolhas com mais autonomia e confiança no dia a dia.</p>
+            </article>
+            <article className="atend-card atend-online">
+              <h3>Consultas online</h3>
+              <p>As consultas online seguem o mesmo cuidado e personalização do atendimento presencial, com a praticidade de estar onde você se sentir mais à vontade. Nesse formato, não realizamos a avaliação física com bioimpedância e adipometria. Quando necessário e se você se sentir confortável, ensino como registrar medidas corporais e fotos para complementar o acompanhamento.</p>
+            </article>
           </div>
+
+          <Link href="/agendar" className="botao">Agendar minha consulta →</Link>
         </section>
 
       </main>
