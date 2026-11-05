@@ -128,7 +128,7 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 @media (min-width: 760px) { .passos { grid-template-columns: repeat(3, 1fr); } }
 .passos li { counter-increment: passo; display: grid; gap: 0.6rem; border-top: 2px solid var(--tinta); padding-top: 1.25rem; align-content: start; }
 .passos li::before { content: "0" counter(passo); font-family: var(--fonte-titulo); font-size: 4.5rem; line-height: 1; color: var(--terracota); }
-.passos h3 { font-size: 1.75rem; }
+.passos h3 { font-size: clamp(1.35rem, 2.2vw, 1.6rem); line-height: 1.2; }
 .passos p { color: var(--tinta-suave); }
 
 .depoimento { margin: 0; background: var(--profundo); color: var(--sobre-profundo); border-radius: var(--raio-xl); padding: 3rem 2rem; text-align: center; display: grid; gap: 1.25rem; justify-items: center; }

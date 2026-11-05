@@ -7,11 +7,10 @@ const nome = process.env.NEXT_PUBLIC_NOME_CLINICA ?? "Ayllus Nutrição";
 const especialidades = ["Emagrecimento saudável", "Reeducação alimentar", "Nutrição esportiva", "Saúde intestinal", "Gestação e pós-parto"];
 
 const passos = [
-  { titulo: "Escolha o horário", texto: "Veja no calendário os horários livres do mês." },
-  { titulo: "Preencha seus dados", texto: "Nome, celular e e-mail. Leva menos de um minuto." },
-  { titulo: "Pronto", texto: "Sua consulta entra direto na agenda da nutricionista." },
+  { titulo: "Escolha o horário", texto: "Selecione a modalidade, o dia e o horário que melhor se adaptam à sua rotina." },
+  { titulo: "Preencha seus dados", texto: "Informe seus dados para concluir o agendamento." },
+  { titulo: "Questionário e orientações iniciais antes da primeira consulta", texto: "Você receberá, por e-mail ou WhatsApp, o questionário inicial e as informações para se preparar para a consulta." },
 ];
-
 export default function Inicio() {
   return (
     <>

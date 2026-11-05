@@ -10,7 +10,8 @@ O texto da home promete o seguinte; o sistema ainda **não** tem isso:
 2. **Questionário pré-consulta**: o paciente responde antes da primeira consulta para a nutricionista conhecer a saúde e os objetivos dele (a anamnese que já existe na ficha pode ser a base).
 3. **Questionário de avaliação do atendimento** depois da consulta, com opção de resposta **anônima**.
 4. **Pedido de remarcação pelo paciente**: hoje só a nutricionista remarca (em Consultas → Remarcar); o paciente avisa por mensagem.
-5. **Contato pelo WhatsApp com prazo de resposta de até dois dias úteis**: hoje o contato é só por mensagens enviadas pela nutricionista na área do paciente.
+5. **Escolha da modalidade (presencial ou online) ao agendar**: o texto "Como agendar" da home fala em "selecionar a modalidade", mas o formulário de agendamento ainda não pergunta isso (hoje só dia e horário).
+6. **Contato pelo WhatsApp com prazo de resposta de até dois dias úteis**: hoje o contato é só por mensagens enviadas pela nutricionista na área do paciente.
 
 Dependência: os itens 1, 2 e 3 precisam de **e-mail (SMTP)** para serem enviados sozinhos (ex.: Resend ou Brevo). Sem e-mail, dá para mostrar o conteúdo dentro da área do paciente.
 
