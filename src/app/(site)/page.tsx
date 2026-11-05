@@ -25,12 +25,14 @@ export default function Inicio() {
       <main>
         <section className="hero">
           <div className="hero-texto">
-            <span className="etiqueta">Nutricionista clínica · CRN-3 00000</span>
-            <h1>Comer bem é uma <em>conversa</em>, não uma dieta.</h1>
-            <p>
-              Acompanhamento nutricional individual, sem dietas da moda e sem cardápios impossíveis.
-              Um plano pensado para o que você gosta de comer e para o tempo que você tem.
-            </p>
+            <span className="etiqueta">Mariana Fernandes de Oliveira | Nutricionista clínica | CRN-3 61672</span>
+            <h1>Nutrir o corpo, acolher a mente, cultivar o <em>ser</em>.</h1>
+            <div className="hero-descricao">
+              <p className="hero-destaque">Cuidado nutricional com ciência, escuta e estratégias possíveis para a sua vida.</p>
+              <p>Talvez você já tenha ouvido que, para melhorar sua saúde, basta ter força de vontade, cortar tudo o que gosta e seguir uma dieta rígida.</p>
+              <p>Se esse caminho nunca funcionou para você, eu entendo. Cuidar da alimentação pode respeitar seus gostos, sua rotina e os momentos que fazem parte da sua vida.</p>
+              <p>Na Ayllus, construímos juntos um tratamento para cuidar da sua saúde e ajudar você a se alimentar com mais autonomia e tranquilidade.</p>
+            </div>
             <div className="hero-botoes">
               <Link href="/agendar" className="botao">Agendar minha consulta →</Link>
               <a href="#atendimentos" className="botao botao-contorno">Conhecer os atendimentos</a>

@@ -63,9 +63,12 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
 
 .hero { display: grid; gap: 3rem; padding: 3rem 0 4rem; align-items: center; }
 .etiqueta { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--broto); padding: 0.5rem 1rem; border-radius: 999px; font-size: 0.875rem; font-weight: 500; margin-bottom: 1.5rem; }
-.etiqueta::before { content: ""; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--folha); }
+.etiqueta::before { content: ""; flex: none; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--folha); }
 .hero h1 { font-size: clamp(2.6rem, 6.4vw, 4.5rem); line-height: 1.08; letter-spacing: -0.015em; }
 .hero-texto p { margin: 1.5rem 0 2rem; max-width: 34rem; color: var(--tinta-suave); font-size: 1.1875rem; line-height: 1.6; }
+.hero-descricao { margin: 1.5rem 0 2rem; max-width: 36rem; display: grid; gap: 0.9rem; }
+.hero-texto .hero-descricao p { margin: 0; max-width: none; font-size: 1.0625rem; }
+.hero-texto .hero-descricao .hero-destaque { font-size: 1.1875rem; font-weight: 600; color: var(--tinta); }
 .hero-botoes { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 
 .arco { position: relative; aspect-ratio: 4 / 5; width: 100%; max-width: 26rem; justify-self: center; }
