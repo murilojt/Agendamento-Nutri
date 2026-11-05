@@ -123,6 +123,30 @@ export default function Inicio() {
           <Link href="/agendar" className="botao">Agendar minha consulta →</Link>
         </section>
 
+        <section className="secao pilares" id="pilares" aria-labelledby="pilares-titulo">
+          <h2 id="pilares-titulo">Os três <em>pilares</em> do nosso cuidado</h2>
+          <p className="pilares-intro">Mudanças consistentes são construídas ao longo do tempo. Durante o acompanhamento, trabalhamos três pilares que se complementam:</p>
+          <div className="pilares-grade">
+            <article className="pilar pilar-corpo">
+              <span className="pilar-num" aria-hidden="true">1</span>
+              <h3>Nutrir o corpo</h3>
+              <p>Investigamos sua saúde, seus sintomas, seus exames e sua alimentação. Organizamos refeições, planejamento, sono e exercicio físico para construir uma base de cuidado possível de manter.</p>
+            </article>
+            <article className="pilar pilar-mente">
+              <span className="pilar-num" aria-hidden="true">2</span>
+              <h3>Acolher a mente</h3>
+              <p>Olhamos para as dificuldades que atravessam a alimentação: estresse, ansiedade, emoções, falta de tempo e sua relação com a comida e com o corpo.</p>
+              <p>Conforme suas necessidades, utilizamos ferramentas de educação nutricional e comportamento alimentar para compreender padrões e construir estratégias para situações do cotidiano.</p>
+            </article>
+            <article className="pilar pilar-ser">
+              <span className="pilar-num" aria-hidden="true">3</span>
+              <h3>Cultivar o ser</h3>
+              <p>Ao longo do processo, você aprende a reconhecer o que funciona para você, fazer ajustes com flexibilidade e lidar com mudanças na rotina.</p>
+              <p>O objetivo é desenvolver autonomia para cuidar da alimentação e sustentar suas conquistas, com espaço para seus gostos, seus vínculos e seus momentos de prazer.</p>
+            </article>
+          </div>
+        </section>
+
       </main>
       <div className="faixa-clara">
         <section className="secao">

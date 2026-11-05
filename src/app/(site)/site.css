@@ -262,3 +262,19 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
   .atend-cab { position: sticky; top: 6.5rem; }
   .atend-passo h4 { font-size: 1.5rem; }
 }
+
+/* Os três pilares do cuidado */
+.pilares-intro { margin: 0; max-width: 46rem; font-size: 1.125rem; color: var(--tinta-suave); }
+.pilares-grade { display: grid; gap: 1rem; margin-top: 0.5rem; }
+@media (min-width: 900px) { .pilares-grade { grid-template-columns: repeat(3, 1fr); } }
+.pilar { border-radius: var(--raio-lg); padding: clamp(1.5rem, 3vw, 2rem); display: grid; gap: 0.8rem; align-content: start; }
+.pilar h3 { font-size: clamp(1.6rem, 2.6vw, 2rem); }
+.pilar p { margin: 0; font-size: 0.98rem; }
+.pilar-num { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 50%; font-family: var(--fonte-titulo); font-size: 1.2rem; font-weight: 600; }
+.pilar-corpo { background: var(--folha); color: var(--sobre-folha); }
+.pilar-corpo .pilar-num { background: var(--sobre-folha); color: var(--folha); }
+.pilar-mente { background: var(--profundo); color: var(--sobre-profundo); }
+.pilar-mente .pilar-num { background: var(--gema); color: var(--sobre-gema); }
+.pilar-ser { background: var(--gema-suave); color: var(--tinta-suave); }
+.pilar-ser h3 { color: var(--tinta); }
+.pilar-ser .pilar-num { background: var(--terracota); color: var(--sobre-profundo); }
