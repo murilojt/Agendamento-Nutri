@@ -83,8 +83,9 @@ main { max-width: var(--largura); margin: 0 auto; padding: 0 1.25rem; }
   padding: 0.6rem 1rem; font-size: 0.875rem; font-weight: 500; box-shadow: var(--sombra);
   animation: flutuar 6s ease-in-out infinite;
 }
-.arco-selo.a { left: -0.5rem; bottom: 22%; }
-.arco-selo.b { right: 0; bottom: 8%; animation-delay: -3s; }
+.arco-selo.a { left: -0.5rem; top: 24%; }
+.arco-selo.b { right: 0; bottom: 30%; animation-delay: -3s; }
+.arco-selo.c { left: 12%; bottom: 8%; animation-delay: -6s; }
 @keyframes flutuar { 50% { transform: translateY(-8px); } }
 @media (min-width: 860px) { .hero { grid-template-columns: 1.15fr 0.85fr; padding-top: 4rem; } .arco { justify-self: end; } }
 

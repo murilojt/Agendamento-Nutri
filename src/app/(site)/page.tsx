@@ -44,8 +44,9 @@ export default function Inicio() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/marca/ayllus-isotipo-dourado.svg" alt="" width={168} height={191} />
             </div>
-            <div className="arco-selo a">Plano 100% personalizado</div>
-            <div className="arco-selo b">Sem alimentos proibidos</div>
+            <div className="arco-selo a">Nutrir o corpo</div>
+            <div className="arco-selo b">acolher a mente</div>
+            <div className="arco-selo c">cultivar o ser</div>
           </div>
         </section>
       </main>
