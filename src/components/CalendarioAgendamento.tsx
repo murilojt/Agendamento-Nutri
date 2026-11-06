@@ -35,6 +35,7 @@ export function CalendarioAgendamento() {
   const dialogo = useRef<HTMLDialogElement>(null);
   // Paciente logado: preenche o formulário e manda o token, para a consulta ficar vinculada à conta dele
   const token = useRef<string | undefined>(undefined);
+  const [pacienteLogado, setPacienteLogado] = useState(false);
   const base = useRef<Campos>(vazio);
   const mesAtual = useRef(mes);
   mesAtual.current = mes;
@@ -56,6 +57,7 @@ export function CalendarioAgendamento() {
       if (perfil?.role !== "patient") return;
       const [nome, ...resto] = (perfil.full_name ?? "").trim().split(/\s+/);
       token.current = session.access_token;
+      setPacienteLogado(true);
       base.current = { ...vazio, nome: nome ?? "", sobrenome: resto.join(" "), email: session.user.email ?? "", celular: perfil.phone ?? "", nascimento: perfil.birth_date ?? "" };
       setCampos(base.current);
     });
@@ -247,7 +249,11 @@ export function CalendarioAgendamento() {
               <strong>{fmtDia.format(comoData(concluido.inicio.slice(0, 10)))} às {horaLocal(new Date(concluido.inicio))}</strong>.
             </p>
             <div className="concluido-acoes">
-              <Link href="/" className="botao">Voltar para a página inicial</Link>
+              {pacienteLogado ? (
+                <Link href="/paciente" className="botao">Voltar para minha área</Link>
+              ) : (
+                <Link href="/" className="botao">Voltar para a página inicial</Link>
+              )}
               <button className="botao-secundario" onClick={fecharFormulario}>Agendar outro horário</button>
             </div>
           </div>
