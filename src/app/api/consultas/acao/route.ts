@@ -7,11 +7,13 @@ import { CONFIG_AGENDA } from "@/core/config";
 import { dataLocal, horariosDoDia, isoLocal, montarDataHora, somarDias } from "@/core/disponibilidade";
 import { getCalendario, HorarioOcupadoError } from "@/lib/calendario";
 import { tituloDoEvento } from "@/core/pacientes";
+import { avisarPaciente } from "@/lib/servidor/avisos";
+import { dataHoraCompleta } from "@/lib/formatar";
 import { criarPreCadastro, recalcularTipos } from "@/lib/servidor/vinculoPaciente";
 
 const schema = z.object({
   consultaId: z.string().uuid().optional(),
-  acao: z.enum(["realizada", "faltou", "reabrir", "vincular", "cadastrar", "dispensar", "recalcular", "remarcar"]),
+  acao: z.enum(["realizada", "faltou", "reabrir", "vincular", "cadastrar", "dispensar", "recalcular", "remarcar", "manter"]),
   novoInicio: z.string().datetime({ offset: true }).optional(),
   pacienteId: z.string().uuid().optional(),
   nutritionistAccessToken: z.string().min(1, "Não autenticado."),
@@ -43,9 +45,10 @@ export async function POST(req: NextRequest) {
 
     // Sem o patch SQL 10 as colunas guest_birth_date e kind não existem: lê de novo só com as básicas
     const BASE = "id, patient_id, google_event_id, status, guest_name, guest_email, guest_phone, starts_at, ends_at";
-    let lido = await admin.from("appointments").select(`${BASE}, guest_birth_date, kind`).eq("id", consultaId).maybeSingle();
+    let lido = await admin.from("appointments").select(`${BASE}, guest_birth_date, kind, modality`).eq("id", consultaId).maybeSingle();
+    if (lido.error) lido = await admin.from("appointments").select(`${BASE}, guest_birth_date, kind`).eq("id", consultaId).maybeSingle();
     if (lido.error) lido = await admin.from("appointments").select(BASE).eq("id", consultaId).maybeSingle();
-    const c = lido.data as unknown as { id: string; patient_id: string | null; google_event_id: string | null; status: string; guest_name: string; guest_email: string; guest_phone: string; starts_at: string; ends_at: string; guest_birth_date?: string | null; kind?: "first" | "return" | null } | null;
+    const c = lido.data as unknown as { id: string; patient_id: string | null; google_event_id: string | null; status: string; guest_name: string; guest_email: string; guest_phone: string; starts_at: string; ends_at: string; guest_birth_date?: string | null; kind?: "first" | "return" | null; modality?: string | null } | null;
     if (!c) return NextResponse.json({ error: "Consulta não encontrada." }, { status: 404 });
 
     if (acao === "remarcar") {
@@ -67,7 +70,7 @@ export async function POST(req: NextRequest) {
       const [nome, ...resto] = (c.guest_name ?? "").trim().split(/\s+/);
       const reserva = {
         inicio, fim,
-        titulo: tituloDoEvento(nome ?? "", resto.join(" "), c.kind ?? null),
+        titulo: tituloDoEvento(nome ?? "", resto.join(" "), c.kind ?? null, c.modality === "online" ? "online" : c.modality === "in_person" ? "presencial" : null),
         descricao: [`Paciente: ${c.guest_name}`, `Celular: ${c.guest_phone}`, `E-mail: ${c.guest_email}`, "", "Remarcado pela nutricionista."].join("\n"),
         dados: { nome: nome ?? "", sobrenome: resto.join(" "), celular: c.guest_phone ?? "", email: c.guest_email ?? "", ...(c.patient_id ? { pacienteId: c.patient_id } : {}) },
       };
@@ -89,6 +92,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Não foi possível salvar a remarcação. Tente de novo." }, { status: 500 });
       }
       if (c.patient_id) await recalcularTipos(c.patient_id);
+      // Fecha o pedido de remarcação em aberto (se houver) e avisa o paciente na área dele
+      await admin.from("reschedule_requests").update({ status: "done", resolved_at: new Date().toISOString() }).eq("appointment_id", consultaId).eq("status", "pending");
+      await avisarPaciente(c.patient_id, caller.id, `Sua consulta foi remarcada para ${dataHoraCompleta(inicio.toISOString())}. Qualquer dúvida, é só me avisar por aqui.`);
       return NextResponse.json({ ok: true, inicio: isoLocal(inicio) });
     }
 
@@ -96,6 +102,14 @@ export async function POST(req: NextRequest) {
       const { error } = await admin.from("appointments").update({ status: STATUS[acao] }).eq("id", consultaId);
       if (error) return NextResponse.json({ error: "Não foi possível atualizar a consulta." }, { status: 500 });
       if (c.patient_id) await recalcularTipos(c.patient_id);
+      return NextResponse.json({ ok: true });
+    }
+
+    if (acao === "manter") {
+      // A nutricionista mantém o horário: encerra o pedido e avisa o paciente
+      const { error } = await admin.from("reschedule_requests").update({ status: "declined", resolved_at: new Date().toISOString() }).eq("appointment_id", consultaId).eq("status", "pending");
+      if (error) return NextResponse.json({ error: "Não foi possível atualizar o pedido." }, { status: 500 });
+      await avisarPaciente(c.patient_id, caller.id, `Sobre o seu pedido de remarcação: não consegui outro horário e a consulta continua em ${dataHoraCompleta(c.starts_at)}. Se não puder comparecer, me avise por aqui.`);
       return NextResponse.json({ ok: true });
     }
 

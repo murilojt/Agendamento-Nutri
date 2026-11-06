@@ -103,8 +103,8 @@ export function rotuloTipo(kind: string | null | undefined): string | null {
   return null;
 }
 
-/** Título do evento no Google Agenda. Sem tag quando ainda não dá para saber (revisão). */
-export function tituloDoEvento(nome: string, sobrenome: string, kind: "first" | "return" | null): string {
-  const tag = kind === "first" ? "[1ª consulta] " : kind === "return" ? "[Retorno] " : "";
-  return `${tag}${nome} ${sobrenome}`;
+/** Título do evento no Google Agenda: [1ª consulta · Online] Nome. Sem etiqueta quando ainda não dá para saber (revisão). */
+export function tituloDoEvento(nome: string, sobrenome: string, kind: "first" | "return" | null, modalidade?: "presencial" | "online" | null): string {
+  const partes = [kind === "first" ? "1ª consulta" : kind === "return" ? "Retorno" : "", modalidade === "online" ? "Online" : modalidade === "presencial" ? "Presencial" : ""].filter(Boolean);
+  return `${partes.length ? `[${partes.join(" · ")}] ` : ""}${nome} ${sobrenome}`;
 }

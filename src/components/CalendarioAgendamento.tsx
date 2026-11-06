@@ -1,5 +1,6 @@
 "use client";
 
+import { MODALIDADES } from "@/core/consultas";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { criarClienteAgenda, ErroAgenda } from "@/core/cliente-api";
@@ -29,6 +30,7 @@ export function CalendarioAgendamento() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [consentimento, setConsentimento] = useState(false);
+  const [modalidade, setModalidade] = useState<"" | "presencial" | "online">("");
   const [concluido, setConcluido] = useState<AgendamentoCriado | null>(null);
   const dialogo = useRef<HTMLDialogElement>(null);
   // Paciente logado: preenche o formulário e manda o token, para a consulta ficar vinculada à conta dele
@@ -95,6 +97,10 @@ export function CalendarioAgendamento() {
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     if (!escolhido) return;
+    if (!modalidade) {
+      setErros({ modalidade: ["Escolha presencial ou online"] });
+      return;
+    }
     if (!consentimento) {
       setErros({ consentimento: ["Aceite o uso dos dados para agendar"] });
       return;
@@ -102,7 +108,7 @@ export function CalendarioAgendamento() {
     setEnviando(true);
     setErros({});
     try {
-      const criado = await api.agendar({ inicio: escolhido.inicio, ...campos, consentimento: true }, token.current);
+      const criado = await api.agendar({ inicio: escolhido.inicio, ...campos, modalidade, consentimento: true }, token.current);
       setConcluido(criado);
       carregar();
     } catch (err) {
@@ -190,6 +196,18 @@ export function CalendarioAgendamento() {
             <p className="resumo-horario">
               {fmtDia.format(comoData(escolhido.inicio.slice(0, 10)))}, às {horaLocal(new Date(escolhido.inicio))}
             </p>
+            <fieldset className="modalidade" aria-describedby={erros.modalidade ? "erro-modalidade" : undefined}>
+              <legend>Como prefere ser atendido(a)?</legend>
+              <div className="modalidade-opcoes">
+                {MODALIDADES.map((m) => (
+                  <label key={m.valor} className={`modalidade-opcao${modalidade === m.valor ? " marcada" : ""}`}>
+                    <input type="radio" name="modalidade" value={m.valor} checked={modalidade === m.valor} onChange={() => setModalidade(m.valor)} />
+                    {m.rotulo}
+                  </label>
+                ))}
+              </div>
+              {erros.modalidade && <p id="erro-modalidade" className="erro-campo" role="alert">{erros.modalidade[0]}</p>}
+            </fieldset>
             <div className="linha-dupla">
               <Campo id="nome" rotulo="Nome" erros={erros.nome}>
                 <input id="nome" autoComplete="given-name" value={campos.nome} onChange={atualizar("nome")} required />

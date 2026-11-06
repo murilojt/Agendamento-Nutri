@@ -87,7 +87,10 @@ export default function PacientePage() {
 
       {consultas.length > 0 && (
         <section className="mb-10">
-          <h2 className="mb-4 text-2xl">Próximas consultas</h2>
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <h2 className="text-2xl">Próximas consultas</h2>
+            <Link href="/paciente/consultas" className="text-sm font-semibold underline">Ver todas e remarcar</Link>
+          </div>
           <div className="flex flex-col gap-2">
             {consultas.map((c) => (
               <Card key={c.id} className="p-4 text-sm font-semibold capitalize">

@@ -175,6 +175,14 @@ Não precisa de script no Supabase. No menu do paciente há a página **Marmitas
 
 Substitutos e refeições favoritas continuam em gramas por enquanto.
 
+## Passo 8j. Modalidade, minhas consultas e pedidos de remarcação
+
+1. No Supabase, rode **`16-modalidade-e-pedidos-de-remarcacao.sql`**.
+2. **Modalidade:** o formulário de agendar passa a perguntar **Presencial** ou **Online** (obrigatório). O título do evento na Google Agenda vira, por exemplo, `[1ª consulta · Online] Nome`, e a modalidade aparece em Consultas, no painel.
+3. **Minhas consultas (paciente):** no menu do paciente, **Consultas** lista as próximas e as anteriores, com selo de 1ª consulta/retorno e modalidade; no presencial mostra o endereço com o link **Ver rota**. Cada consulta tem **Adicionar ao Google Agenda** e **Baixar para o calendário (.ics)** (com lembrete 1 dia antes).
+4. **Pedir remarcação:** o paciente clica em **Pedir remarcação** e pode dizer quando prefere. Isso aparece no painel em **Consultas → Pedidos de remarcação** (a aba só aparece quando há pedidos). Você escolhe **Escolher novo horário** (abre o seletor de horários da agenda) ou **Manter horário e avisar**.
+5. **Aviso ao paciente:** sempre que você remarca uma consulta (com ou sem pedido) ou mantém o horário, o paciente recebe uma mensagem na área dele, em *Mensagens da nutricionista*. Ainda não há aviso por e-mail.
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.

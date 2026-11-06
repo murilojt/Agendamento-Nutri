@@ -58,4 +58,6 @@ test("tipo da consulta e título do evento", () => {
   assert.equal(tipoDaConsulta({ jaAtendido: false, consultasRealizadasAntes: 2 }), "return");
   assert.equal(tituloDoEvento("Ana", "Souza", "first"), "[1ª consulta] Ana Souza");
   assert.equal(tituloDoEvento("Ana", "Souza", null), "Ana Souza");
+  assert.equal(tituloDoEvento("Ana", "Souza", "return", "online"), "[Retorno · Online] Ana Souza");
+  assert.equal(tituloDoEvento("Ana", "Souza", null, "presencial"), "[Presencial] Ana Souza");
 });

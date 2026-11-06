@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const dados = novoAgendamentoSchema.safeParse(await req.json().catch(() => null));
   if (!dados.success) return erroValidacao(dados.error);
 
-  const { nome, sobrenome, celular, email, nascimento } = dados.data;
+  const { nome, sobrenome, celular, email, nascimento, modalidade } = dados.data;
   const inicio = new Date(dados.data.inicio);
   const fim = new Date(inicio.getTime() + CONFIG_AGENDA.duracaoMin * 60_000);
   const dia = dataLocal(inicio);
@@ -44,20 +44,21 @@ export async function POST(req: NextRequest) {
     const googleEventId = await calendario.reservar({
       inicio,
       fim,
-      titulo: tituloDoEvento(nome, sobrenome, kind),
+      titulo: tituloDoEvento(nome, sobrenome, kind, modalidade),
       descricao: [
         `Paciente: ${nome} ${sobrenome}`,
         `Celular: ${celular}`,
         `E-mail: ${email}`,
+        `Modalidade: ${modalidade === "online" ? "Online" : "Presencial"}.`,
         kind === "first" ? "1ª consulta." : kind === "return" ? "Retorno." : "",
         vinculo.revisar ? "ATENÇÃO: confira o cadastro deste paciente no painel (revisar)." : "",
         "",
         "Agendado pelo site.",
       ].join("\n"),
-      dados: { nome, sobrenome, celular, email, ...(pacienteId ? { pacienteId } : {}), ...(kind ? { tipo: kind } : {}) },
+      dados: { nome, sobrenome, celular, email, ...(pacienteId ? { pacienteId } : {}), ...(kind ? { tipo: kind } : {}), modalidade },
     });
 
-    await gravarConsulta({ googleEventId, vinculo, inicio, fim, nome: `${nome} ${sobrenome}`, email, celular, nascimento, consentAt });
+    await gravarConsulta({ googleEventId, vinculo, inicio, fim, nome: `${nome} ${sobrenome}`, email, celular, nascimento, consentAt, modalidade });
 
     return NextResponse.json<AgendamentoCriado>(
       { inicio: isoLocal(inicio), fim: isoLocal(fim), nome },

@@ -68,6 +68,7 @@ export default function PacienteLayout({ children }: { children: React.ReactNode
 
   const LINKS = [
     { href: "/paciente", rotulo: "Início", ativo: pathname === "/paciente" },
+    { href: "/paciente/consultas", rotulo: "Consultas", ativo: pathname.startsWith("/paciente/consultas") },
     { href: "/paciente/dieta", rotulo: "Dieta", ativo: pathname.startsWith("/paciente/dieta") },
     { href: "/paciente/marmitas", rotulo: "Marmitas", ativo: pathname.startsWith("/paciente/marmitas") },
     { href: "/agendar", rotulo: "Agendar consulta", ativo: false },

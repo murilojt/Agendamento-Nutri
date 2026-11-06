@@ -8,6 +8,7 @@ import { Carregando } from "@/components/ui/Carregando";
 import { ErrorText } from "@/components/ui/ErrorText";
 import { dataHoraCompleta } from "@/lib/formatar";
 import { RemarcarConsultaModal } from "@/components/RemarcarConsultaModal";
+import { rotuloModalidade } from "@/core/consultas";
 import { MOTIVOS_REVISAO, rotuloTipo, type MotivoRevisao } from "@/core/pacientes";
 
 type Consulta = {
@@ -19,18 +20,21 @@ type Consulta = {
   guest_email: string;
   guest_phone: string;
   kind?: string | null;
+  modality?: string | null;
   needs_review?: boolean;
   review_reason?: string | null;
   suggested_patient_id?: string | null;
   profiles: { full_name: string | null } | null;
 };
 
-type Aba = "proximas" | "anteriores" | "revisar";
-type Acao = "realizada" | "faltou" | "reabrir" | "vincular" | "cadastrar" | "dispensar";
+type Aba = "proximas" | "pedidos" | "anteriores" | "revisar";
+type Acao = "realizada" | "faltou" | "reabrir" | "vincular" | "cadastrar" | "dispensar" | "manter";
+type Pedido = { id: string; appointment_id: string; note: string | null; created_at: string };
 type Aviso = { tipo: "ok"; texto: string };
 
 const COLUNAS_BASE = "id, starts_at, status, patient_id, guest_name, guest_email, guest_phone, profiles!appointments_patient_id_fkey(full_name)";
 const COLUNAS_NOVAS = `${COLUNAS_BASE}, kind, needs_review, review_reason, suggested_patient_id`;
+const COLUNAS_COM_MODALIDADE = `${COLUNAS_NOVAS}, modality`;
 const ROTULO_STATUS: Record<string, string> = { completed: "Realizada", no_show: "Faltou", cancelled: "Cancelada" };
 
 const botao = "rounded-full px-4 py-2 text-sm font-semibold";
@@ -46,15 +50,21 @@ export default function ConsultasPage() {
   const [ocupada, setOcupada] = useState<string | null>(null);
   const [remarcando, setRemarcando] = useState<Consulta | null>(null);
   const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [pedidos, setPedidos] = useState<Record<string, Pedido>>({});
 
   const carregar = useCallback(async () => {
     const consulta = (colunas: string) => supabase.from("appointments").select(colunas).order("starts_at", { ascending: false }).limit(200);
-    let r = await consulta(COLUNAS_NOVAS);
-    // Sem o patch SQL 10: mostra só o básico
+    let r = await consulta(COLUNAS_COM_MODALIDADE);
+    // Sem o patch SQL 16 (modalidade) ou o 10 (selos e revisão): mostra o que o banco tiver
+    if (r.error) r = await consulta(COLUNAS_NOVAS);
     if (r.error) r = await consulta(COLUNAS_BASE);
     if (r.error) setError("Não foi possível carregar as consultas. Confirme que o patch SQL 05 foi aplicado no Supabase.");
     const lista = (r.data as unknown as Consulta[]) ?? [];
     setConsultas(lista);
+
+    // Pedidos de remarcação em aberto feitos pelos pacientes (patch SQL 16; sem ele, simplesmente não há)
+    const { data: ped } = await supabase.from("reschedule_requests").select("id, appointment_id, note, created_at").eq("status", "pending");
+    setPedidos(Object.fromEntries((ped ?? []).map((x) => [x.appointment_id as string, x as Pedido])));
 
     const ids = [...new Set(lista.map((c) => c.suggested_patient_id).filter((x): x is string => !!x))];
     if (ids.length) {
@@ -106,7 +116,8 @@ export default function ConsultasPage() {
   const revisar = consultas.filter((c) => c.needs_review && c.status !== "cancelled");
   const proximas = consultas.filter((c) => new Date(c.starts_at).getTime() >= agora - 60 * 60_000 && c.status === "confirmed").reverse();
   const anteriores = consultas.filter((c) => !proximas.includes(c));
-  const lista = aba === "proximas" ? proximas : aba === "anteriores" ? anteriores : revisar;
+  const comPedido = proximas.filter((c) => pedidos[c.id]);
+  const lista = aba === "proximas" ? proximas : aba === "pedidos" ? comPedido : aba === "anteriores" ? anteriores : revisar;
 
   return (
     <div className="max-w-3xl">
@@ -119,6 +130,7 @@ export default function ConsultasPage() {
         {(
           [
             ["proximas", `Próximas (${proximas.length})`],
+            ...(comPedido.length > 0 ? ([["pedidos", `Pedidos de remarcação (${comPedido.length})`]] as [Aba, string][]) : []),
             ["anteriores", `Anteriores (${anteriores.length})`],
             ["revisar", `Revisar (${revisar.length})`],
           ] as [Aba, string][]
@@ -149,7 +161,7 @@ export default function ConsultasPage() {
       ) : lista.length === 0 ? (
         <Card className="p-10 text-center">
           <p style={{ color: "var(--color-text-muted)" }}>
-            {aba === "revisar" ? "Nenhuma consulta precisa de revisão." : "Nenhuma consulta por aqui."}
+            {aba === "revisar" ? "Nenhuma consulta precisa de revisão." : aba === "pedidos" ? "Nenhum pedido de remarcação em aberto." : "Nenhuma consulta por aqui."}
           </p>
         </Card>
       ) : (
@@ -165,6 +177,8 @@ export default function ConsultasPage() {
                     <p className="flex flex-wrap items-center gap-2 font-semibold">
                       {dataHoraCompleta(c.starts_at)}
                       {tipo && <span className="rounded-full px-2 py-0.5 text-xs" style={estiloSuave}>{tipo}</span>}
+                      {rotuloModalidade(c.modality) && <span className="rounded-full px-2 py-0.5 text-xs" style={estiloSuave}>{rotuloModalidade(c.modality)}</span>}
+                      {pedidos[c.id] && <span className="rounded-full px-2 py-0.5 text-xs" style={estiloPrimario}>Pediu remarcação</span>}
                       {ROTULO_STATUS[c.status] && <span className="rounded-full px-2 py-0.5 text-xs" style={estiloSuave}>{ROTULO_STATUS[c.status]}</span>}
                       {c.needs_review && <span className="rounded-full px-2 py-0.5 text-xs" style={estiloPrimario}>Revisar</span>}
                     </p>
@@ -181,6 +195,17 @@ export default function ConsultasPage() {
                     <span className="rounded-full px-4 py-2 text-xs font-semibold" style={estiloSuave}>Sem cadastro no sistema</span>
                   )}
                 </div>
+
+                {pedidos[c.id] && (
+                  <div className="rounded-2xl p-4 text-sm" style={estiloSuave} data-testid="pedido-remarcacao">
+                    <p className="mb-1 font-semibold">Pedido de remarcação · {dataHoraCompleta(pedidos[c.id].created_at)}</p>
+                    <p className="mb-3">{pedidos[c.id].note ? <>“{pedidos[c.id].note}”</> : <span style={{ color: "var(--color-text-muted)" }}>O paciente não deixou observação.</span>}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <button disabled={trabalhando} onClick={() => { setAviso(null); setRemarcando(c); }} className={botao} style={estiloPrimario}>Escolher novo horário</button>
+                      <button disabled={trabalhando} onClick={() => executar(c.id, "manter")} className={botao} style={estiloSuave}>Manter horário e avisar</button>
+                    </div>
+                  </div>
+                )}
 
                 {c.needs_review && (
                   <div className="rounded-2xl p-4 text-sm" style={estiloSuave}>

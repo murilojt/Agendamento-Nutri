@@ -2,6 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { getSupabaseAdmin } from "./supabaseAdmin";
 import { usuarioDoToken } from "./serverAuth";
+import { paraBanco, type Modalidade } from "@/core/consultas";
 import { decidirVinculo, normalizaTelefone, tipoDaConsulta, type Candidato, type DadosFormulario, type MotivoRevisao } from "@/core/pacientes";
 
 export type ResultadoVinculo = {
@@ -140,6 +141,7 @@ export type ConsultaGravada = {
   celular: string;
   nascimento: string;
   consentAt: string;
+  modalidade?: Modalidade;
 };
 
 /** Grava a consulta no Supabase (a Google Agenda continua sendo a fonte da disponibilidade). */
@@ -167,10 +169,13 @@ export async function gravarConsulta(c: ConsultaGravada): Promise<void> {
     consent_at: c.consentAt,
   };
 
-  let { error } = await admin.from("appointments").upsert(completo, { onConflict: "google_event_id" });
-  if (error) {
-    // SQL 10 ainda não aplicado: grava só o básico
-    ({ error } = await admin.from("appointments").upsert(base, { onConflict: "google_event_id" }));
+  // Tenta com tudo; se faltar o patch SQL 16 (modalidade) ou o 10 (revisão, nascimento), grava o que o banco aceitar
+  const modality = c.modalidade ? { modality: paraBanco(c.modalidade) } : {};
+  const tentativas = [{ ...completo, ...modality }, completo, { ...base, ...modality }, base];
+  let error: { message: string } | null = null;
+  for (const linha of tentativas) {
+    ({ error } = await admin.from("appointments").upsert(linha, { onConflict: "google_event_id" }));
+    if (!error) break;
   }
   if (error) console.error("Consulta salva na Google Agenda, mas não no Supabase:", error.message);
 }
