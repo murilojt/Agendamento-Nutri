@@ -2,6 +2,13 @@
 
 Lista viva do que foi conversado e fica para depois. Atualize conforme for feito.
 
+## Anotados para executar em seguida
+
+1. **Link da videochamada nas consultas online**: campo para a nutricionista colar o link (por consulta, ou um link fixo da clínica) e mostrar ao paciente em **Minhas consultas**. Hoje a página só diz "Consulta online".
+2. **Questionário e orientações antes da primeira consulta**, dentro da área do paciente (sem e-mail por enquanto):
+   - questionário pré-consulta, com a anamnese que já existe na ficha como base, para a nutricionista ver na ficha;
+   - orientações para a consulta (como funciona, exames a trazer, avaliação física, pagamento e remarcação), escritas uma vez pela nutricionista e exibidas ao paciente que tem consulta marcada.
+
 ## Fluxo da primeira consulta (descrito no texto "Como funcionam meus atendimentos?")
 
 O texto da home promete o seguinte; o sistema ainda **não** tem isso:
