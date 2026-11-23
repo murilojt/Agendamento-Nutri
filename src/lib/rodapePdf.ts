@@ -18,7 +18,7 @@ export const RODAPE_PADRAO = {
   display_name: "Mariana Fernandes",
   crn: "CRN3 61672",
   phone: "(11) 91365-7788",
-  email: "nutri.marianafernandes@gmail.com",
+  email: "clinica.ayllus@gmail.com",
 } as const;
 
 const limpa = (s: string | null | undefined) => s?.replace(/\s+/g, " ").trim() ?? "";
@@ -42,7 +42,7 @@ export function comPadrao(salva: Partial<ConfigRodape> | null | undefined): Conf
  *   Clínica Ayllus | Nutricionista Mariana Fernandes
  *   CRN3 61672
  *   Tel.:(11) 91365-7788
- *   E-mail: nutri.marianafernandes@gmail.com
+ *   E-mail: clinica.ayllus@gmail.com
  * Campos em branco não geram linha.
  */
 export function linhasDoRodape(c: Pick<ConfigRodape, "clinic_name" | "display_name" | "crn" | "phone" | "email">): string[] {

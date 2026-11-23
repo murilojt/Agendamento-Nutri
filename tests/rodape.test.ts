@@ -7,7 +7,7 @@ test("o padrão da clínica gera exatamente as 4 linhas pedidas", () => {
     "Clínica Ayllus | Nutricionista Mariana Fernandes",
     "CRN3 61672",
     "Tel.:(11) 91365-7788",
-    "E-mail: nutri.marianafernandes@gmail.com",
+    "E-mail: clinica.ayllus@gmail.com",
   ]);
 });
 

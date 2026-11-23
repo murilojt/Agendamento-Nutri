@@ -87,7 +87,7 @@ test("SVG vetorial: lê viewBox, paths e polígonos", () => {
 
 test("rodapé do PDF: 4 linhas da clínica à esquerda e, se houver, a assinatura com medidas proporcionais", () => {
   const sem = montarDadosPdf(entrada());
-  assert.deepEqual(sem.rodape.linhas, ["Clínica Ayllus | Nutricionista Mariana Fernandes", "CRN3 61672", "Tel.:(11) 91365-7788", "E-mail: nutri.marianafernandes@gmail.com"]);
+  assert.deepEqual(sem.rodape.linhas, ["Clínica Ayllus | Nutricionista Mariana Fernandes", "CRN3 61672", "Tel.:(11) 91365-7788", "E-mail: clinica.ayllus@gmail.com"]);
   assert.equal(sem.rodape.assinatura, null);
   assert.equal(sem.rodape.assinaturaMedidas, null);
   const PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAAAwCAYAAAC";
