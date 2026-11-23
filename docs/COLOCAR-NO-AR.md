@@ -183,6 +183,16 @@ Substitutos e refeições favoritas continuam em gramas por enquanto.
 4. **Pedir remarcação:** o paciente clica em **Pedir remarcação** e pode dizer quando prefere. Isso aparece no painel em **Consultas → Pedidos de remarcação** (a aba só aparece quando há pedidos). Você escolhe **Escolher novo horário** (abre o seletor de horários da agenda) ou **Manter horário e avisar**.
 5. **Aviso ao paciente:** sempre que você remarca uma consulta (com ou sem pedido) ou mantém o horário, o paciente recebe uma mensagem na área dele, em *Mensagens da nutricionista*. Ainda não há aviso por e-mail.
 
+## Passo 8k. Nutricionista oficial e Google Agenda da clínica
+
+**Conta oficial:** a conta de nutricionista da clínica usa o e-mail `clinica.ayllus@gmail.com`.
+1. No Supabase: **Authentication → Users → Add user → Create new user**. Informe o e-mail e a senha e marque **Auto Confirm User**.
+2. Rode **`17-nutricionista-oficial.sql`** no SQL Editor. Ele transforma essa conta na nutricionista, **transfere** para ela todos os pacientes, dietas, mensagens, favoritas e a assinatura do PDF, e **apaga** a conta de nutricionista antiga. Para só transferir, sem apagar, mude `v_apagar_antigo` para `false` no começo do script.
+3. Entre no site com o e-mail novo e **troque a senha** por uma só sua. Não guarde senhas no GitHub nem em mensagens.
+4. Depois disso, os pacientes novos que se cadastram pelo agendamento já ficam ligados a essa conta, por ser a única nutricionista.
+
+**Google Agenda (trava os horários):** o site já cria o evento na agenda quando o paciente marca e já mostra como "Preenchido" qualquer horário ocupado nela. Falta só ligar à agenda da conta oficial, seguindo `docs/configurar-google-agenda.md`, com o ID da agenda `GOOGLE_CALENDAR_ID=clinica.ayllus@gmail.com`: a agenda principal dessa conta, compartilhada com a conta de serviço com a permissão **Fazer alterações nos eventos**.
+
 ## Passo 9. Segurança (não pule)
 
 - O repositório antigo **Ayllus-admin** tem a chave secreta do Supabase no histórico. No Supabase, vá em **Project Settings → API** e **gere uma nova chave secreta** (revogando a antiga). Se você criou o projeto novo no passo 1, a chave de lá é nova e só vale a regra: nunca versionar.
